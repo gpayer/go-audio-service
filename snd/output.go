@@ -13,11 +13,11 @@ type Output struct {
 	device     *malgo.Device
 	samplerate uint32
 	samplesize int
-	buffer     []Sample
+	bufferChan chan Sample
 }
 
 // NewOutput creates a new Output instance
-func NewOutput(samplerate uint32) (*Output, error) {
+func NewOutput(samplerate uint32, buffersize int) (*Output, error) {
 	o := &Output{}
 	var err error
 	o.context, err = malgo.InitContext(nil, malgo.ContextConfig{}, func(_ string) {})
@@ -32,29 +32,28 @@ func NewOutput(samplerate uint32) (*Output, error) {
 
 	o.samplerate = samplerate
 	o.samplesize = malgo.SampleSizeInBytes(deviceConfig.Format)
+	o.bufferChan = make(chan Sample, buffersize)
 
 	onSendSamples := func(requestedSampleCount uint32, samples []byte) uint32 {
-		fmt.Println(requestedSampleCount, len(samples))
-		var actual int
-		if int(requestedSampleCount) > len(o.buffer) {
-			actual = len(o.buffer)
-		} else {
-			actual = int(requestedSampleCount)
-		}
-		slice := o.buffer[:actual]
-		o.buffer = o.buffer[actual:]
+		// fmt.Println(requestedSampleCount, len(samples))
+		var readCount uint32 = 0
 		offset := 0
-		for _, sample := range slice {
-			fmt.Println(offset)
-			l := floatToBytes(sample.L)
-			samples[offset] = l[0]
-			samples[offset+1] = l[1]
-			r := floatToBytes(sample.R)
-			samples[offset+2] = r[0]
-			samples[offset+3] = r[1]
-			offset += 4
+		for readCount < requestedSampleCount {
+			select {
+			case sample := <-o.bufferChan:
+				l := floatToBytes(sample.L)
+				samples[offset] = l[0]
+				samples[offset+1] = l[1]
+				r := floatToBytes(sample.R)
+				samples[offset+2] = r[0]
+				samples[offset+3] = r[1]
+				offset += 4
+				readCount++
+			default:
+				return readCount
+			}
 		}
-		return uint32(len(slice))
+		return readCount
 	}
 
 	deviceCallbacks := malgo.DeviceCallbacks{
@@ -75,22 +74,24 @@ func NewOutput(samplerate uint32) (*Output, error) {
 // Close closes the output
 func (o *Output) Close() {
 	o.device.Uninit()
-	o.context.Uninit()
+	_ = o.context.Uninit()
 	o.context.Free()
 }
 
 // Start starts playback on the output
-func (o *Output) Start() {
+func (o *Output) Start() (err error) {
 	if !o.device.IsStarted() {
-		o.device.Start()
+		err = o.device.Start()
 	}
+	return
 }
 
 // Stop stops playback
-func (o *Output) Stop() {
+func (o *Output) Stop() (err error) {
 	if o.device.IsStarted() {
-		o.device.Stop()
+		err = o.device.Stop()
 	}
+	return
 }
 
 // Write writes all given samples to the ouput buffer
@@ -98,7 +99,9 @@ func (o *Output) Write(samples *Samples) error {
 	if samples.SampleRate != o.samplerate {
 		return fmt.Errorf("wrong samplerate, device has %d, %d given", samples.SampleRate, o.samplerate)
 	}
-	o.buffer = append(o.buffer, samples.Frames...)
+	for _, sample := range samples.Frames {
+		o.bufferChan <- sample
+	}
 	return nil
 }
 

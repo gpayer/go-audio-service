@@ -1,12 +1,12 @@
 package main
 
 import (
-	"audiotest/snd"
+	"go-audio-service/snd"
 	"time"
 )
 
 func main() {
-	out, err := snd.NewOutput(44000)
+	out, err := snd.NewOutput(44000, 512)
 	if err != nil {
 		panic(err)
 	}
@@ -16,18 +16,21 @@ func main() {
 	samples.Frames = make([]snd.Sample, 500)
 	for i := 0; i < 500; i++ {
 		if i <= 250 {
-			samples.Frames[i].L = -0.0
-			samples.Frames[i].R = -0.2
+			samples.Frames[i].L = -0.3
+			samples.Frames[i].R = -0.3
 		} else {
-			samples.Frames[i].L = 0.0
-			samples.Frames[i].R = 0.2
+			samples.Frames[i].L = 0.3
+			samples.Frames[i].R = 0.3
 		}
 	}
 
+	err = out.Start()
+	if err != nil {
+		panic(err)
+	}
 	for i := 0; i < 100; i++ {
 		_ = out.Write(samples)
 	}
-	out.Start()
 	time.Sleep(time.Second)
-	out.Stop()
+	_ = out.Stop()
 }
