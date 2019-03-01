@@ -11,3 +11,8 @@ type Samples struct {
 	Frames     []Sample
 	SampleRate uint32
 }
+
+// Add adds one or more Samples to a Samples struct
+func (s *Samples) Add(samples ...Sample) {
+	s.Frames = append(s.Frames, samples...)
+}

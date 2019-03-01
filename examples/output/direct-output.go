@@ -13,15 +13,16 @@ func main() {
 	defer out.Close()
 
 	samples := &snd.Samples{SampleRate: 44000}
-	samples.Frames = make([]snd.Sample, 500)
 	for i := 0; i < 500; i++ {
+		var sample snd.Sample
 		if i <= 250 {
-			samples.Frames[i].L = -0.3
-			samples.Frames[i].R = -0.3
+			sample.L = -0.3
+			sample.R = -0.3
 		} else {
-			samples.Frames[i].L = 0.3
-			samples.Frames[i].R = 0.3
+			sample.L = 0.3
+			sample.R = 0.3
 		}
+		samples.Add(sample)
 	}
 
 	err = out.Start()

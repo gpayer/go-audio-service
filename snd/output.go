@@ -36,7 +36,7 @@ func NewOutput(samplerate uint32, buffersize int) (*Output, error) {
 
 	onSendSamples := func(requestedSampleCount uint32, samples []byte) uint32 {
 		// fmt.Println(requestedSampleCount, len(samples))
-		var readCount uint32 = 0
+		var readCount uint32
 		offset := 0
 		for readCount < requestedSampleCount {
 			select {
