@@ -105,6 +105,8 @@ func (o *Output) Write(samples *Samples) error {
 	return nil
 }
 
+func (o *Output) SetOutput(_ Filter) {}
+
 func floatToBytes(f float32) []byte {
 	var i int16
 	if f > 0.0 {

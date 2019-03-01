@@ -1,6 +1,7 @@
 package main
 
 import (
+	"go-audio-service/generators"
 	"go-audio-service/snd"
 	"time"
 )
@@ -12,26 +13,14 @@ func main() {
 	}
 	defer out.Close()
 
-	samples := &snd.Samples{SampleRate: 44000}
-	for i := 0; i < 500; i++ {
-		var sample snd.Sample
-		if i <= 250 {
-			sample.L = -0.3
-			sample.R = -0.3
-		} else {
-			sample.L = 0.3
-			sample.R = 0.3
-		}
-		samples.Add(sample)
-	}
-
+	gen := generators.NewRect(44000, 440)
+	gen.SetOutput(out)
+	gen.Start()
 	err = out.Start()
 	if err != nil {
 		panic(err)
 	}
-	for i := 0; i < 100; i++ {
-		_ = out.Write(samples)
-	}
 	time.Sleep(time.Second)
+	gen.Stop()
 	_ = out.Stop()
 }
