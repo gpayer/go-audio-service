@@ -3,7 +3,6 @@ package mix
 import (
 	"go-audio-service/snd"
 	"sync"
-	"time"
 )
 
 type channelStruct struct {
@@ -34,7 +33,7 @@ func NewMixer(samplerate uint32) *Mixer {
 }
 
 func (m *Mixer) addChannel(ch *Channel) chan<- *snd.Samples {
-	samplesCh := make(chan *snd.Samples, 512) // TODO: global configuration
+	samplesCh := make(chan *snd.Samples, 20)
 	m.mtx.Lock()
 	defer m.mtx.Unlock()
 	m.channels = append(m.channels, &channelStruct{
@@ -76,8 +75,23 @@ func (m *Mixer) Stop() {
 	}
 }
 
+// GetChannel returns a new channel connected to this Mixer
+func (m *Mixer) GetChannel() *Channel {
+	ch := NewChannel(m.samplerate)
+	ch.out = m.addChannel(ch)
+	return ch
+}
+
+const bufSize = 256
+
 func (m *Mixer) startWorker() {
 	go func() {
+		buffer := make([]snd.Sample, bufSize)
+		samples := &snd.Samples{
+			SampleRate: m.samplerate,
+			Frames:     buffer,
+		}
+		sampleIdx := 0
 		for {
 			select {
 			case <-m.done:
@@ -89,44 +103,37 @@ func (m *Mixer) startWorker() {
 			}
 
 			m.mtx.Lock()
-			minlen := 0
 			for _, channel := range m.channels {
-				select {
-				case newSamples := <-(channel.input):
-					channel.buffer = append(channel.buffer, newSamples.Frames...)
-				default:
-				}
-				if minlen == 0 || len(channel.buffer) < minlen && len(channel.buffer) > 0 {
-					minlen = len(channel.buffer)
+				if len(channel.buffer) < bufSize {
+					select {
+					case newSamples := <-(channel.input):
+						channel.buffer = append(channel.buffer, newSamples.Frames...)
+					default:
+					}
 				}
 			}
 
-			if minlen > 0 {
-				buffer := make([]snd.Sample, minlen)
-				for i := 0; i < minlen; i++ {
+			for _, channel := range m.channels {
+				if len(channel.buffer) > 0 {
+					buffer[sampleIdx].L += channel.buffer[0].L
+					buffer[sampleIdx].R += channel.buffer[0].R
+					channel.buffer = channel.buffer[1:]
+				}
+			}
+			sampleIdx++
+			if sampleIdx == bufSize {
+				err := m.output.Write(samples)
+				for i := 0; i < bufSize; i++ {
 					buffer[i].L = 0.0
 					buffer[i].R = 0.0
 				}
-				for _, channel := range m.channels {
-					for i := 0; i < minlen; i++ {
-						buffer[i].L += channel.buffer[i].L
-						buffer[i].R += channel.buffer[i].R
-					}
-					channel.buffer = channel.buffer[minlen:]
-				}
-				err := m.output.Write(&snd.Samples{
-					SampleRate: m.samplerate,
-					Frames:     buffer,
-				})
 				if err != nil {
 					m.mtx.Unlock()
 					panic(err)
 				}
-				m.mtx.Unlock()
-			} else {
-				m.mtx.Unlock()
-				time.Sleep(10 * time.Millisecond)
+				sampleIdx = 0
 			}
+			m.mtx.Unlock()
 		}
 	}()
 }
