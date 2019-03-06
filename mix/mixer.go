@@ -17,7 +17,7 @@ type Mixer struct {
 	channels   []*channelStruct
 	samplerate uint32
 	gain       float32
-	output     snd.Filter
+	output     snd.Input
 	done       chan struct{}
 	running    bool
 }
@@ -44,7 +44,7 @@ func (m *Mixer) addChannel(ch *Channel) chan<- *snd.Samples {
 }
 
 // SetOutput sets the next filter in the output chain
-func (m *Mixer) SetOutput(out snd.Filter) {
+func (m *Mixer) SetOutput(out snd.Input) {
 	m.mtx.Lock()
 	defer m.mtx.Unlock()
 	m.output = out

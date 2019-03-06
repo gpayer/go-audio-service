@@ -80,4 +80,4 @@ func (ch *Channel) Write(samples *snd.Samples) error {
 }
 
 // SetOutput does nothing for Channel
-func (ch *Channel) SetOutput(out snd.Filter) {}
+func (ch *Channel) SetOutput(out snd.Input) {}

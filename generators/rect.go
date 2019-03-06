@@ -5,14 +5,14 @@ import (
 )
 
 type Generator interface {
-	SetOutput(f snd.Filter)
+	SetOutput(f snd.Input)
 	Start()
 	Stop()
 }
 
 type Rect struct {
 	samplerate uint32
-	out        snd.Filter
+	out        snd.Input
 	high       bool
 	current    int
 	max        int
@@ -31,7 +31,7 @@ func NewRect(samplerate uint32, freq int) *Rect {
 	}
 }
 
-func (r *Rect) SetOutput(f snd.Filter) {
+func (r *Rect) SetOutput(f snd.Input) {
 	r.out = f
 }
 

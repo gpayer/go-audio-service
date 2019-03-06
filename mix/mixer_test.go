@@ -8,17 +8,6 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-type bufferedOutput struct {
-	samples []snd.Sample
-}
-
-func (b *bufferedOutput) Write(samples *snd.Samples) error {
-	b.samples = append(b.samples, samples.Frames...)
-	return nil
-}
-
-func (b *bufferedOutput) SetOutput(out snd.Filter) {}
-
 func TestMixer(t *testing.T) {
 	assert := assert.New(t)
 	samples1 := &snd.Samples{
@@ -45,7 +34,7 @@ func TestMixer(t *testing.T) {
 	ch2.SetMixer(m)
 	assert.Nil(ch1.Write(samples1))
 	assert.Nil(ch2.Write(samples2))
-	buf := &bufferedOutput{}
+	buf := &snd.BufferedOutput{}
 	m.SetOutput(buf)
 
 	time.Sleep(500 * time.Millisecond)
@@ -53,7 +42,7 @@ func TestMixer(t *testing.T) {
 	assert.True(m.running)
 	m.Stop()
 	assert.False(m.running)
-	assert.Len(buf.samples, 5)
-	assert.Equal(float32(0.5), buf.samples[0].L)
-	assert.Equal(float32(0.5), buf.samples[0].R)
+	assert.Len(buf.Frames, 5)
+	assert.Equal(float32(0.5), buf.Frames[0].L)
+	assert.Equal(float32(0.5), buf.Frames[0].R)
 }

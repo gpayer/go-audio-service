@@ -105,7 +105,7 @@ func (o *Output) Write(samples *Samples) error {
 	return nil
 }
 
-func (o *Output) SetOutput(_ Filter) {}
+func (o *Output) SetOutput(_ Input) {}
 
 func floatToBytes(f float32) []byte {
 	var i int16
@@ -118,3 +118,14 @@ func floatToBytes(f float32) []byte {
 	binary.LittleEndian.PutUint16(bs, uint16(i))
 	return bs
 }
+
+type BufferedOutput struct {
+	Frames []Sample
+}
+
+func (b *BufferedOutput) Write(samples *Samples) error {
+	b.Frames = append(b.Frames, samples.Frames...)
+	return nil
+}
+
+func (b *BufferedOutput) SetOutput(out Input) {}

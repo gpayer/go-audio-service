@@ -64,7 +64,7 @@ func (state *BiquadState) Process(input, output []snd.Sample) {
 	state.yn2 = yn2
 }
 
-func (state *BiquadState) reset() {
+func (state *BiquadState) Reset() {
 	state.xn1 = snd.Sample{L: 0, R: 0}
 	state.xn2 = snd.Sample{L: 0, R: 0}
 	state.yn1 = snd.Sample{L: 0, R: 0}
@@ -88,7 +88,6 @@ func (state *BiquadState) zero() {
 }
 
 func (state *BiquadState) LowPass(rate uint32, cutoff, resonance float32) {
-	state.reset()
 	nyquist := float32(rate) * 0.5
 	cutoff /= nyquist
 
