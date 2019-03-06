@@ -14,7 +14,7 @@ func main() {
 	defer out.Close()
 
 	gen := generators.NewRect(44000, 440)
-	gen.SetOutput(out)
+	out.SetReadable(gen)
 	gen.Start()
 	err = out.Start()
 	if err != nil {

@@ -11,8 +11,8 @@ type Generator interface {
 }
 
 type Rect struct {
+	snd.BasicReadable
 	samplerate uint32
-	out        snd.Input
 	high       bool
 	current    int
 	max        int
@@ -31,54 +31,34 @@ func NewRect(samplerate uint32, freq int) *Rect {
 	}
 }
 
-func (r *Rect) SetOutput(f snd.Input) {
-	r.out = f
-}
-
-func (r *Rect) startGenerator() {
-	go func() {
-		r.running = true
-		for {
-			select {
-			case <-(r.done):
-				r.running = false
-				return
-			default:
-			}
-			var v float32
+func (r *Rect) Read(samples *snd.Samples) int {
+	length := len(samples.Frames)
+	var v float32
+	for i := 0; i < length; i++ {
+		if r.running {
 			if r.high {
 				v = 0.5
 			} else {
 				v = -0.5
 			}
-			samples := &snd.Samples{SampleRate: r.samplerate}
-			for i := 0; r.current <= r.max && i < 512; i++ {
-				samples.Add(snd.Sample{
-					L: v,
-					R: v,
-				})
-				r.current++
-			}
-			if r.current >= r.max {
-				r.high = !r.high
-				r.current = 0
-			}
-			err := r.out.Write(samples)
-			if err != nil {
-				panic(err)
-			}
+		} else {
+			v = 0.0
 		}
-	}()
+		r.current++
+		if r.current >= r.max {
+			r.high = !r.high
+			r.current = 0
+		}
+		samples.Frames[i].L = v
+		samples.Frames[i].R = v
+	}
+	return length
 }
 
 func (r *Rect) Start() {
-	if !r.running {
-		r.startGenerator()
-	}
+	r.running = true
 }
 
 func (r *Rect) Stop() {
-	if r.running {
-		r.done <- struct{}{}
-	}
+	r.running = false
 }

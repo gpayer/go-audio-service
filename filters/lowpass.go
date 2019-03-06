@@ -1,18 +1,17 @@
 package filters
 
 import (
-	"fmt"
 	"go-audio-service/snd"
 )
 
 type LowPassFilter struct {
-	snd.BufferedInputProvider
+	snd.BasicWritableProvider
 	state       *BiquadState
 	rate        uint32
 	cutoff      float32
 	resonance   float32
-	cutoffInput *snd.InputBuffer
-	out         snd.Input
+	cutoffInput *snd.BasicConnector
+	readable    snd.Readable
 }
 
 func NewLowPass(rate uint32, cutoff, resonance float32) *LowPassFilter {
@@ -25,31 +24,30 @@ func NewLowPass(rate uint32, cutoff, resonance float32) *LowPassFilter {
 		resonance: resonance,
 	}
 	state.Reset()
-	lowpass.Init()
-	lowpass.cutoffInput = lowpass.AddInput("cutoff", rate)
+	lowpass.InitBasicWritableProvider()
+	lowpass.cutoffInput = lowpass.AddInput("cutoff")
 	return lowpass
 }
 
-func (f *LowPassFilter) Write(samples *snd.Samples) error {
-	if samples.SampleRate != f.rate {
-		return fmt.Errorf("incompatible sample rate: %d != %d", samples.SampleRate, f.rate)
-	}
-	if f.out != nil {
-		cutoffValues := f.cutoffInput.Read(len(samples.Frames))
-		if len(cutoffValues.Frames) > 0 {
-			newCutoff := cutoffValues.Frames[0].L
-			if newCutoff != f.cutoff {
-				f.state.LowPass(f.rate, newCutoff, f.resonance)
-				f.cutoff = newCutoff
-			}
+func (f *LowPassFilter) Read(samples *snd.Samples) int {
+	cutoffValues := snd.NewSamples(samples.SampleRate, len(samples.Frames))
+	length := f.cutoffInput.Read(cutoffValues)
+	if length > 0 {
+		newCutoff := cutoffValues.Frames[0].L
+		if newCutoff != f.cutoff {
+			f.state.LowPass(f.rate, newCutoff, f.resonance)
+			f.cutoff = newCutoff
 		}
-		f.state.Process(samples.Frames, samples.Frames)
-
-		return f.out.Write(samples)
 	}
-	return nil
+	_ = f.readable.Read(samples)
+	f.state.Process(samples.Frames, samples.Frames)
+	return len(samples.Frames)
 }
 
-func (f *LowPassFilter) SetOutput(out snd.Input) {
-	f.out = out
+func (f *LowPassFilter) SetReadable(r snd.Readable) {
+	f.readable = r
+}
+
+func (f *LowPassFilter) SetOutput(out snd.Writable) {
+	out.SetReadable(f)
 }

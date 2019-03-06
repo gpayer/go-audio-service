@@ -20,7 +20,7 @@ func main() {
 	lowpass := filters.NewLowPass(44000, cutoff, 1.0)
 	lowpass.SetOutput(output)
 	rect := generators.NewRect(44000, 800)
-	rect.SetOutput(lowpass)
+	lowpass.SetReadable(rect)
 	cutoffInput, ok := lowpass.GetInput("cutoff")
 	if !ok {
 		panic(fmt.Errorf("no cutoff input"))

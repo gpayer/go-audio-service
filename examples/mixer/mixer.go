@@ -21,19 +21,19 @@ func main() {
 	ch1 := m.GetChannel()
 	ch1.SetGain(0.2)
 	ch1.SetPan(-.5)
-	gen1.SetOutput(ch1)
+	ch1.SetReadable(gen1)
 
 	gen2 := generators.NewRect(44000, 600)
 	ch2 := m.GetChannel()
 	ch2.SetGain(0.1)
 	ch2.SetPan(.5)
-	gen2.SetOutput(ch2)
+	ch2.SetReadable(gen2)
 
 	gen3 := generators.NewRect(44000, 900)
 	ch3 := m.GetChannel()
 	ch3.SetGain(0.2)
 	ch3.SetPan(.5)
-	gen3.SetOutput(ch3)
+	ch3.SetReadable(gen3)
 
 	gen1.Start()
 	gen2.Start()

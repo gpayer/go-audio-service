@@ -2,7 +2,6 @@ package snd
 
 import (
 	"encoding/binary"
-	"fmt"
 
 	"github.com/gen2brain/malgo"
 )
@@ -13,7 +12,7 @@ type Output struct {
 	device     *malgo.Device
 	samplerate uint32
 	samplesize int
-	bufferChan chan Sample
+	readable   Readable
 }
 
 // NewOutput creates a new Output instance
@@ -32,28 +31,27 @@ func NewOutput(samplerate uint32, buffersize int) (*Output, error) {
 
 	o.samplerate = samplerate
 	o.samplesize = malgo.SampleSizeInBytes(deviceConfig.Format)
-	o.bufferChan = make(chan Sample, buffersize)
 
 	onSendSamples := func(requestedSampleCount uint32, samples []byte) uint32 {
 		// fmt.Println(requestedSampleCount, len(samples))
-		var readCount uint32
-		offset := 0
-		for readCount < requestedSampleCount {
-			select {
-			case sample := <-o.bufferChan:
-				l := floatToBytes(sample.L)
-				samples[offset] = l[0]
-				samples[offset+1] = l[1]
-				r := floatToBytes(sample.R)
-				samples[offset+2] = r[0]
-				samples[offset+3] = r[1]
-				offset += 4
-				readCount++
-			default:
-				return readCount
-			}
+		input := &Samples{
+			SampleRate: o.samplerate,
+			Frames:     make([]Sample, requestedSampleCount),
 		}
-		return readCount
+
+		readCount := o.readable.Read(input)
+
+		offset := 0
+		for i := 0; i < readCount; i++ {
+			l := floatToBytes(input.Frames[i].L)
+			samples[offset] = l[0]
+			samples[offset+1] = l[1]
+			r := floatToBytes(input.Frames[i].R)
+			samples[offset+2] = r[0]
+			samples[offset+3] = r[1]
+			offset += 4
+		}
+		return uint32(readCount)
 	}
 
 	deviceCallbacks := malgo.DeviceCallbacks{
@@ -94,18 +92,14 @@ func (o *Output) Stop() (err error) {
 	return
 }
 
-// Write writes all given samples to the ouput buffer
-func (o *Output) Write(samples *Samples) error {
-	if samples.SampleRate != o.samplerate {
-		return fmt.Errorf("wrong samplerate, device has %d, %d given", samples.SampleRate, o.samplerate)
-	}
-	for _, sample := range samples.Frames {
-		o.bufferChan <- sample
-	}
-	return nil
+func (o *Output) SetReadable(r Readable) {
+	o.readable = r
 }
 
-func (o *Output) SetOutput(_ Input) {}
+// Write writes all given samples to the ouput buffer
+func (o *Output) Write(samples *Samples) error {
+	return nil
+}
 
 func floatToBytes(f float32) []byte {
 	var i int16
@@ -118,14 +112,3 @@ func floatToBytes(f float32) []byte {
 	binary.LittleEndian.PutUint16(bs, uint16(i))
 	return bs
 }
-
-type BufferedOutput struct {
-	Frames []Sample
-}
-
-func (b *BufferedOutput) Write(samples *Samples) error {
-	b.Frames = append(b.Frames, samples.Frames...)
-	return nil
-}
-
-func (b *BufferedOutput) SetOutput(out Input) {}

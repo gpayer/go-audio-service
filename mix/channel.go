@@ -1,7 +1,6 @@
 package mix
 
 import (
-	"fmt"
 	"go-audio-service/snd"
 	"math"
 )
@@ -11,8 +10,7 @@ type Channel struct {
 	gain       float32
 	pan        float32
 	samplerate uint32
-	mixer      *Mixer
-	out        chan<- *snd.Samples
+	readable   snd.Readable
 }
 
 // NewChannel creates a new Channel instance
@@ -22,6 +20,10 @@ func NewChannel(samplerate uint32) *Channel {
 		gain:       1.0,
 		pan:        0.0,
 	}
+}
+
+func (ch *Channel) SetReadable(r snd.Readable) {
+	ch.readable = r
 }
 
 func clamp(v float32, min float32, max float32) float32 {
@@ -53,18 +55,8 @@ func (ch *Channel) Pan() float32 {
 	return ch.pan
 }
 
-// SetMixer sets the mixer output for this channel
-func (ch *Channel) SetMixer(m *Mixer) {
-	ch.mixer = m
-	ch.out = m.addChannel(ch)
-}
-
-// Write implements the Filter interface for Channel
-func (ch *Channel) Write(samples *snd.Samples) error {
-	if samples.SampleRate != ch.samplerate {
-		return fmt.Errorf("incompatible samplerate %d != %d", samples.SampleRate, ch.samplerate)
-	}
-
+func (ch *Channel) Read(samples *snd.Samples) int {
+	length := ch.readable.Read(samples)
 	scale := float32(1.0 - math.Abs(float64(ch.pan))*.5)
 	lgain := (ch.pan + 1.0) * scale
 	rgain := (1.0 - ch.pan) * scale
@@ -73,11 +65,5 @@ func (ch *Channel) Write(samples *snd.Samples) error {
 		sample.R *= rgain * ch.gain
 		samples.Frames[idx] = sample
 	}
-
-	ch.out <- samples
-
-	return nil
+	return length
 }
-
-// SetOutput does nothing for Channel
-func (ch *Channel) SetOutput(out snd.Input) {}

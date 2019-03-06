@@ -16,3 +16,10 @@ type Samples struct {
 func (s *Samples) Add(samples ...Sample) {
 	s.Frames = append(s.Frames, samples...)
 }
+
+func NewSamples(samplerate uint32, length int) *Samples {
+	return &Samples{
+		SampleRate: samplerate,
+		Frames:     make([]Sample, length),
+	}
+}
