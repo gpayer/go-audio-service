@@ -1,6 +1,8 @@
 package mix
 
 import (
+	"fmt"
+	"go-audio-service/generators"
 	"go-audio-service/snd"
 	"testing"
 
@@ -53,4 +55,31 @@ func TestMixer(t *testing.T) {
 	assert.Equal(length, 5)
 	assert.Equal(float32(0.5), samples.Frames[0].L)
 	assert.Equal(float32(0.5), samples.Frames[0].R)
+}
+
+func runMixerBenchmark(n int, b *testing.B) {
+	m := NewMixer(44000)
+	var rects []*generators.Rect
+	for i := 0; i < n; i++ {
+		r := generators.NewRect(44000, 800+n*10)
+		rects = append(rects, r)
+		ch := m.GetChannel()
+		ch.SetReadable(r)
+		ch.SetGain(0.5 / float32(n))
+	}
+	samples := snd.NewSamples(44000, 223)
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		m.Read(samples)
+	}
+}
+
+func BenchmarkMixer(b *testing.B) {
+	n := 1
+	for n < 50 {
+		b.Run(fmt.Sprintf("BenchmarkMixer%d", n), func(b *testing.B) {
+			runMixerBenchmark(1, b)
+		})
+		n += 5
+	}
 }

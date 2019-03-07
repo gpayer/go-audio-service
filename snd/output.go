@@ -34,12 +34,12 @@ func NewOutput(samplerate uint32, buffersize int) (*Output, error) {
 
 	onSendSamples := func(requestedSampleCount uint32, samples []byte) uint32 {
 		// fmt.Println(requestedSampleCount, len(samples))
-		input := &Samples{
+		input := Samples{
 			SampleRate: o.samplerate,
 			Frames:     make([]Sample, requestedSampleCount),
 		}
 
-		readCount := o.readable.Read(input)
+		readCount := o.readable.Read(&input)
 
 		offset := 0
 		for i := 0; i < readCount; i++ {

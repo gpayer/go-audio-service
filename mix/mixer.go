@@ -12,6 +12,7 @@ type Mixer struct {
 	samplerate uint32
 	gain       float32
 	running    bool
+	tmp        *snd.Samples
 }
 
 // NewMixer creates a new Mixer instance
@@ -20,6 +21,7 @@ func NewMixer(samplerate uint32) *Mixer {
 		samplerate: samplerate,
 		gain:       1.0,
 		running:    true,
+		tmp:        snd.NewSamples(samplerate, 256),
 	}
 }
 
@@ -62,7 +64,11 @@ func (m *Mixer) GetChannel() *Channel {
 
 func (m *Mixer) Read(samples *snd.Samples) int {
 	if m.running {
-		tmp := &snd.Samples{SampleRate: samples.SampleRate, Frames: make([]snd.Sample, len(samples.Frames))}
+		//tmp := &snd.Samples{SampleRate: samples.SampleRate, Frames: make([]snd.Sample, len(samples.Frames))}
+		if len(samples.Frames) != len(m.tmp.Frames) {
+			m.tmp = snd.NewSamples(m.samplerate, len(samples.Frames))
+		}
+		tmp := m.tmp
 		for _, channel := range m.channels {
 			length := channel.Read(tmp)
 			for i := 0; i < length; i++ {

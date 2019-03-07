@@ -5,7 +5,7 @@ import (
 )
 
 type Generator interface {
-	SetOutput(f snd.Input)
+	snd.Readable
 	Start()
 	Stop()
 }
@@ -16,7 +16,6 @@ type Rect struct {
 	high       bool
 	current    int
 	max        int
-	done       chan struct{}
 	running    bool
 }
 
@@ -26,7 +25,6 @@ func NewRect(samplerate uint32, freq int) *Rect {
 		high:       false,
 		current:    0,
 		max:        int(samplerate) / freq,
-		done:       make(chan struct{}),
 		running:    false,
 	}
 }
