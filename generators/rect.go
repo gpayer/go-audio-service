@@ -5,9 +5,8 @@ import (
 )
 
 type Generator interface {
-	snd.Readable
-	Start()
-	Stop()
+	ReadStateless(samples *snd.Samples, freq float32, timecode uint32)
+	SetGenerator(g Generator)
 }
 
 type Rect struct {
@@ -24,7 +23,7 @@ func NewRect(samplerate uint32, freq int) *Rect {
 		samplerate: samplerate,
 		high:       false,
 		current:    0,
-		max:        int(samplerate) / freq,
+		max:        int(samplerate) / freq / 2,
 		running:    false,
 	}
 }
@@ -60,3 +59,26 @@ func (r *Rect) Start() {
 func (r *Rect) Stop() {
 	r.running = false
 }
+
+func (r *Rect) ReadStateless(samples *snd.Samples, freq float32, timecode uint32) {
+	length := len(samples.Frames)
+	var v float32
+	max := uint32(float32(samples.SampleRate) / freq)
+	half := max / 2
+	current := timecode % max
+	for i := 0; i < length; i++ {
+		if current < half {
+			v = 0.5
+		} else {
+			v = -0.5
+		}
+		samples.Frames[i].L = v
+		samples.Frames[i].R = v
+		current++
+		if current >= max {
+			current = 0
+		}
+	}
+}
+
+func (r *Rect) SetGenerator(g Generator) {}

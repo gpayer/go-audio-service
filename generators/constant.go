@@ -41,3 +41,13 @@ func (c *Constant) Read(samples *snd.Samples) int {
 	}
 	return len(samples.Frames)
 }
+
+func (c *Constant) ReadStateless(samples *snd.Samples, freq float32, timecode uint32) {
+	v := c.Value
+	for i := 0; i < len(samples.Frames); i++ {
+		samples.Frames[i].L = v
+		samples.Frames[i].R = v
+	}
+}
+
+func (c *Constant) SetGenerator(g *Generator) {}
