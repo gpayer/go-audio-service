@@ -5,7 +5,8 @@ type Writable interface {
 }
 
 type Readable interface {
-	Read(samples *Samples) int
+	Read(samples *Samples)
+	ReadStateless(samples *Samples, freq float32, timecode uint32, on bool)
 }
 
 type BasicReadable struct{}
@@ -40,6 +41,16 @@ type BasicConnector struct {
 func (c *BasicConnector) SetReadable(r Readable) {
 	c.r = r
 }
-func (c *BasicConnector) Read(samples *Samples) int {
-	return c.r.Read(samples)
+
+func (c *BasicConnector) Read(samples *Samples) {
+	if c.r != nil {
+		c.r.Read(samples)
+		samples.Valid = false
+	} else {
+		samples.Valid = false
+	}
+}
+
+func (c *BasicConnector) ReadStateless(samples *Samples, freq float32, timecode uint32, on bool) {
+	c.r.ReadStateless(samples, freq, timecode, on)
 }

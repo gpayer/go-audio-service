@@ -15,14 +15,14 @@ func TestRectStateless(t *testing.T) {
 	var high float32 = 0.5
 	var low float32 = -0.5
 
-	r.ReadStateless(samples, 20.0, 0)
+	r.ReadStateless(samples, 20.0, 0, true)
 
 	assert.Equal(high, samples.Frames[0].L)
 	assert.Equal(high, samples.Frames[51].L)
 	assert.Equal(low, samples.Frames[26].L)
 	assert.Equal(low, samples.Frames[76].L)
 
-	r.ReadStateless(samples, 20.0, 26)
+	r.ReadStateless(samples, 20.0, 26, true)
 	assert.Equal(low, samples.Frames[0].L)
 	assert.Equal(low, samples.Frames[51].L)
 	assert.Equal(high, samples.Frames[26].L)

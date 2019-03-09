@@ -18,6 +18,6 @@ func BenchmarkLowpassRead(b *testing.B) {
 	samples := snd.NewSamples(44000, 288)
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		_ = lowpass.Read(samples)
+		lowpass.Read(samples)
 	}
 }

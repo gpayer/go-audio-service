@@ -29,7 +29,7 @@ func main() {
 	ch2.SetPan(.5)
 	ch2.SetReadable(gen2)
 
-	gen3 := generators.NewRect(44000, 900)
+	gen3 := generators.NewRect(44000, 220)
 	ch3 := m.GetChannel()
 	ch3.SetGain(0.2)
 	ch3.SetPan(.5)

@@ -31,21 +31,24 @@ func NewLowPass(rate uint32, cutoff, resonance float32) *LowPassFilter {
 	return lowpass
 }
 
-func (f *LowPassFilter) Read(samples *snd.Samples) int {
+func (f *LowPassFilter) Read(samples *snd.Samples) {
+	f.ReadStateless(samples, 0, 0, true)
+}
+
+func (f *LowPassFilter) ReadStateless(samples *snd.Samples, freq float32, timecode uint32, on bool) {
 	if len(samples.Frames) != len(f.cutoffValues.Frames) {
 		f.cutoffValues = snd.NewSamples(samples.SampleRate, len(samples.Frames))
 	}
-	length := f.cutoffInput.Read(f.cutoffValues)
-	if length > 0 {
+	f.cutoffInput.ReadStateless(f.cutoffValues, freq, timecode, on)
+	if f.cutoffValues.Valid {
 		newCutoff := f.cutoffValues.Frames[0].L
 		if newCutoff != f.cutoff {
 			f.state.LowPass(f.rate, newCutoff, f.resonance)
 			f.cutoff = newCutoff
 		}
 	}
-	_ = f.readable.Read(samples)
+	f.readable.ReadStateless(samples, freq, timecode, on)
 	f.state.Process(samples.Frames, samples.Frames)
-	return len(samples.Frames)
 }
 
 func (f *LowPassFilter) SetReadable(r snd.Readable) {

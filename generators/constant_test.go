@@ -15,11 +15,8 @@ func TestConstant(t *testing.T) {
 		Frames:     make([]snd.Sample, 128),
 	}
 
-	c.Start()
 	c.Read(samples)
-	c.Stop()
 
-	assert.False(c.running)
 	for _, fr := range samples.Frames {
 		assert.Equal(float32(30.0), fr.L)
 		assert.Equal(float32(30.0), fr.R)
@@ -34,7 +31,7 @@ func TestConstantStateless(t *testing.T) {
 		Frames:     make([]snd.Sample, 128),
 	}
 
-	c.ReadStateless(samples, 220.0, 0)
+	c.ReadStateless(samples, 220.0, 0, true)
 
 	for _, fr := range samples.Frames {
 		assert.Equal(float32(30.0), fr.L)

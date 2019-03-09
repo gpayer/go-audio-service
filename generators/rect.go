@@ -18,17 +18,17 @@ type Rect struct {
 	running    bool
 }
 
-func NewRect(samplerate uint32, freq int) *Rect {
+func NewRect(samplerate uint32, freq float32) *Rect {
 	return &Rect{
 		samplerate: samplerate,
 		high:       false,
 		current:    0,
-		max:        int(samplerate) / freq / 2,
+		max:        int(float32(samplerate) / freq / 2),
 		running:    false,
 	}
 }
 
-func (r *Rect) Read(samples *snd.Samples) int {
+func (r *Rect) Read(samples *snd.Samples) {
 	length := len(samples.Frames)
 	var v float32
 	for i := 0; i < length; i++ {
@@ -49,7 +49,6 @@ func (r *Rect) Read(samples *snd.Samples) int {
 		samples.Frames[i].L = v
 		samples.Frames[i].R = v
 	}
-	return length
 }
 
 func (r *Rect) Start() {
@@ -60,17 +59,27 @@ func (r *Rect) Stop() {
 	r.running = false
 }
 
-func (r *Rect) ReadStateless(samples *snd.Samples, freq float32, timecode uint32) {
+func (r *Rect) ReadStateless(samples *snd.Samples, freq float32, timecode uint32, on bool) {
 	length := len(samples.Frames)
 	var v float32
-	max := uint32(float32(samples.SampleRate) / freq)
+	var max uint32
+	if freq > 0 {
+		max = uint32(float32(samples.SampleRate) / freq)
+	} else {
+		r.Read(samples)
+		return
+	}
 	half := max / 2
 	current := timecode % max
 	for i := 0; i < length; i++ {
-		if current < half {
-			v = 0.5
+		if on {
+			if current < half {
+				v = 0.5
+			} else {
+				v = -0.5
+			}
 		} else {
-			v = -0.5
+			v = 0
 		}
 		samples.Frames[i].L = v
 		samples.Frames[i].R = v
@@ -80,5 +89,3 @@ func (r *Rect) ReadStateless(samples *snd.Samples, freq float32, timecode uint32
 		}
 	}
 }
-
-func (r *Rect) SetGenerator(g Generator) {}

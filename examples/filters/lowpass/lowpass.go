@@ -28,7 +28,6 @@ func main() {
 	cutoffValue := generators.NewConstant(44000, cutoff)
 	cutoffValue.SetOutput(cutoffInput)
 
-	cutoffValue.Start()
 	rect.Start()
 	err = output.Start()
 	if err != nil {
@@ -41,7 +40,6 @@ func main() {
 	}
 	time.Sleep(500 * time.Millisecond)
 
-	cutoffValue.Stop()
 	rect.Stop()
 	_ = output.Stop()
 }

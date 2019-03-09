@@ -39,10 +39,10 @@ func NewOutput(samplerate uint32, buffersize int) (*Output, error) {
 			Frames:     make([]Sample, requestedSampleCount),
 		}
 
-		readCount := o.readable.Read(&input)
+		o.readable.Read(&input)
 
 		offset := 0
-		for i := 0; i < readCount; i++ {
+		for i := uint32(0); i < requestedSampleCount; i++ {
 			l := floatToBytes(input.Frames[i].L)
 			samples[offset] = l[0]
 			samples[offset+1] = l[1]
@@ -51,7 +51,7 @@ func NewOutput(samplerate uint32, buffersize int) (*Output, error) {
 			samples[offset+3] = r[1]
 			offset += 4
 		}
-		return uint32(readCount)
+		return requestedSampleCount
 	}
 
 	deviceCallbacks := malgo.DeviceCallbacks{

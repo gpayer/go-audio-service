@@ -22,24 +22,28 @@ func TestRead(t *testing.T) {
 		Frames:     make([]snd.Sample, 2),
 	}
 	channel := NewChannel(22000)
-	readable := &readTestData{}
+	readable := &readableFunc{
+		fn: func(samples *snd.Samples) {
+			samples.Frames[0] = snd.Sample{L: 1.0, R: 1.0}
+			samples.Frames[1] = snd.Sample{L: -0.5, R: -0.5}
+		},
+	}
 	channel.SetReadable(readable)
 
-	length := channel.Read(samples)
+	channel.Read(samples)
 
-	assert.Equal(length, 2)
 	assert.Equal(float32(1.0), samples.Frames[0].L)
 	assert.Equal(float32(1.0), samples.Frames[0].R)
 
 	channel.SetGain(0.5)
-	_ = channel.Read(samples)
+	channel.Read(samples)
 
 	assert.Equal(float32(0.5), samples.Frames[0].L)
 	assert.Equal(float32(0.5), samples.Frames[0].R)
 
 	channel.SetGain(1.0)
 	channel.SetPan(1.0)
-	_ = channel.Read(samples)
+	channel.Read(samples)
 
 	assert.Equal(float32(1.0), samples.Frames[0].L)
 	assert.Equal(float32(0.0), samples.Frames[0].R)
@@ -47,7 +51,7 @@ func TestRead(t *testing.T) {
 	assert.Equal(float32(0.0), samples.Frames[1].R)
 
 	channel.SetPan(-1.0)
-	_ = channel.Read(samples)
+	channel.Read(samples)
 
 	assert.Equal(float32(0.0), samples.Frames[0].L)
 	assert.Equal(float32(1.0), samples.Frames[0].R)

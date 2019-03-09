@@ -6,6 +6,28 @@ type NoteValue float32
 
 var BaseA4 NoteValue = 440.0
 
+const (
+	C      = "C"
+	Csharp = "C#"
+	Db     = "Db"
+	D      = "D"
+	Dsharp = "D#"
+	Eb     = "Eb"
+	E      = "E"
+	F      = "F"
+	Fsharp = "F#"
+	Gb     = "Gb"
+	G      = "G"
+	Gsharp = "G#"
+	Ab     = "Ab"
+	A      = "A"
+	Asharp = "A#"
+	Hb     = "Hb"
+	H      = "H"
+	Bb     = "Bb"
+	B      = "B"
+)
+
 var noteHalfSteps map[string]int = map[string]int{
 	"C":  -9,
 	"C#": -8,
@@ -22,10 +44,10 @@ var noteHalfSteps map[string]int = map[string]int{
 	"Ab": -1,
 	"A":  0,
 	"A#": 1,
-	"Hb": 2,
-	"H":  3,
-	"Bb": 2,
-	"B":  3,
+	"Hb": 1,
+	"H":  2,
+	"Bb": 1,
+	"B":  2,
 }
 
 var twelthrootof2 float64 = 1.059463094359

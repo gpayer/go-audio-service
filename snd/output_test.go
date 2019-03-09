@@ -29,10 +29,10 @@ func innerReadFn(o *Output, requestedSampleCount uint32, samples []byte) uint32 
 		Frames:     make([]Sample, requestedSampleCount),
 	}
 
-	readCount := o.readable.Read(&input)
+	o.readable.Read(&input)
 
 	offset := 0
-	for i := 0; i < readCount; i++ {
+	for i := uint32(0); i < requestedSampleCount; i++ {
 		l := floatToBytes(input.Frames[i].L)
 		samples[offset] = l[0]
 		samples[offset+1] = l[1]
@@ -41,19 +41,22 @@ func innerReadFn(o *Output, requestedSampleCount uint32, samples []byte) uint32 
 		samples[offset+3] = r[1]
 		offset += 4
 	}
-	return uint32(readCount)
+	return requestedSampleCount
 }
 
 type simpleReadable struct {
 	v float32
 }
 
-func (s *simpleReadable) Read(samples *Samples) int {
+func (s *simpleReadable) Read(samples *Samples) {
 	for i := 0; i < len(samples.Frames); i++ {
 		samples.Frames[i].L = s.v
 		samples.Frames[i].R = s.v
 	}
-	return len(samples.Frames)
+}
+
+func (s *simpleReadable) ReadStateless(samples *Samples, _ float32, _ uint32, _ bool) {
+	s.Read(samples)
 }
 
 func BenchmarkInnerReadFn(b *testing.B) {

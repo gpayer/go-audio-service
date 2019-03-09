@@ -1,12 +1,11 @@
 package notes
 
 import (
-	"go-audio-service/generators"
 	"go-audio-service/snd"
 )
 
 type ContinuousNote struct {
-	g        generators.Generator
+	r        snd.Readable
 	freq     float32
 	timecode uint32
 }
@@ -18,14 +17,21 @@ func NewContinuousNote(note NoteValue) *ContinuousNote {
 	}
 }
 
-func (c *ContinuousNote) SetGenerator(g generators.Generator) {
-	c.g = g
+func (c *ContinuousNote) SetReadable(r snd.Readable) {
+	c.r = r
 }
 
-func (c *ContinuousNote) Read(samples *snd.Samples) int {
+func (c *ContinuousNote) Read(samples *snd.Samples) {
 	length := len(samples.Frames)
-	c.g.ReadStateless(samples, c.freq, c.timecode)
+	c.r.ReadStateless(samples, c.freq, c.timecode, true)
 	c.timecode += uint32(length)
 	c.timecode %= samples.SampleRate
-	return length
+}
+
+func (c *ContinuousNote) ReadStateless(samples *snd.Samples, freq float32, timecode uint32, _ bool) {
+	c.Read(samples)
+}
+
+func (c *ContinuousNote) SetNote(note NoteValue) {
+	c.freq = float32(note)
 }

@@ -381,14 +381,17 @@ func (comp *Compressor) SetReadable(r snd.Readable) {
 	comp.readable = r
 }
 
-func (comp *Compressor) Read(samples *snd.Samples) int {
+func (comp *Compressor) Read(samples *snd.Samples) {
+	comp.ReadStateless(samples, 0, 0, true)
+}
+
+func (comp *Compressor) ReadStateless(samples *snd.Samples, freq float32, timecode uint32, on bool) {
 	length := len(samples.Frames)
 	for len(comp.buffer) < length {
-		_ = comp.readable.Read(comp.input)
+		comp.readable.ReadStateless(comp.input, freq, timecode+uint32(len(comp.buffer)), on)
 		comp.state.Process(128, comp.input.Frames, comp.output)
 		comp.buffer = append(comp.buffer, comp.output...)
 	}
 	length = copy(samples.Frames, comp.buffer[:length])
 	comp.buffer = comp.buffer[length:]
-	return length
 }

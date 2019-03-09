@@ -13,9 +13,12 @@ type readableFunc struct {
 	fn func(samples *snd.Samples)
 }
 
-func (r *readableFunc) Read(samples *snd.Samples) int {
+func (r *readableFunc) Read(samples *snd.Samples) {
 	r.fn(samples)
-	return len(samples.Frames)
+}
+
+func (r *readableFunc) ReadStateless(samples *snd.Samples, freq float32, timecode uint32, _ bool) {
+	r.fn(samples)
 }
 
 func TestMixer(t *testing.T) {
@@ -47,12 +50,11 @@ func TestMixer(t *testing.T) {
 	ch2 := m.GetChannel()
 	ch2.SetReadable(readable2)
 
-	length := m.Read(samples)
+	m.Read(samples)
 
 	assert.True(m.running)
 	m.Stop()
 	assert.False(m.running)
-	assert.Equal(length, 5)
 	assert.Equal(float32(0.5), samples.Frames[0].L)
 	assert.Equal(float32(0.5), samples.Frames[0].R)
 }
@@ -61,7 +63,7 @@ func runMixerBenchmark(n int, b *testing.B) {
 	m := NewMixer(44000)
 	var rects []*generators.Rect
 	for i := 0; i < n; i++ {
-		r := generators.NewRect(44000, 800+n*10)
+		r := generators.NewRect(44000, float32(800+n*10))
 		rects = append(rects, r)
 		ch := m.GetChannel()
 		ch.SetReadable(r)
