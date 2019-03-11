@@ -41,6 +41,9 @@ func (adsr *Adsr) calcParameters() {
 }
 
 func (adsr *Adsr) calcRelease(timecode uint32) {
+	if adsr.sustain == 0.0 {
+		return
+	}
 	var currentGain float32
 	if timecode > adsr.t_sustain {
 		currentGain = adsr.sustain
@@ -72,13 +75,13 @@ func (adsr *Adsr) ReadStateless(samples *snd.Samples, freq float32, timecode uin
 	}
 	adsr.on = on
 
-	adsr.readable.ReadStateless(samples, freq, timecode, on)
+	adsr.readable.ReadStateless(samples, freq, timecode, true)
 
 	for i := 0; i < len(samples.Frames); i++ {
 		currentTimecode := timecode + uint32(i)
 		var gain float32
-		if adsr.on {
-			if currentTimecode > adsr.t_sustain {
+		if adsr.on || adsr.sustain == 0.0 {
+			if currentTimecode > adsr.t_sustain && adsr.sustain > 0 {
 				gain = adsr.sustain
 			} else if currentTimecode > adsr.t_decay {
 				gain = 1.0 + float32(currentTimecode-adsr.t_decay)*adsr.d_decay
@@ -87,6 +90,9 @@ func (adsr *Adsr) ReadStateless(samples *snd.Samples, freq float32, timecode uin
 			}
 		} else {
 			gain = adsr.releaseGain + float32(currentTimecode-adsr.releaseTimecode)*adsr.d_release
+		}
+		if gain < 0.0 {
+			gain = 0.0
 		}
 
 		samples.Frames[i].L *= gain
