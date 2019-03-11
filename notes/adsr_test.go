@@ -39,3 +39,14 @@ func TestReleaseParameters(t *testing.T) {
 	assert.Equal(float32(0.5), adsr.releaseGain)
 	assert.Equal(float32(-.5/1000.0), adsr.d_release)
 }
+
+func TestZeroSustainParameters(t *testing.T) {
+	assert := assert.New(t)
+
+	adsr := NewAdsr(0.5, 0.5, 0.0, 1.0)
+	adsr.samplerate = 1000
+	adsr.calcParameters()
+
+	assert.Equal(uint32(1000), adsr.t_sustain)
+	assert.Equal(float32(-0.002), adsr.d_decay)
+}

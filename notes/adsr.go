@@ -77,12 +77,16 @@ func (adsr *Adsr) ReadStateless(samples *snd.Samples, freq float32, timecode uin
 	for i := 0; i < len(samples.Frames); i++ {
 		currentTimecode := timecode + uint32(i)
 		var gain float32
-		if currentTimecode > adsr.t_sustain {
-			gain = adsr.sustain
-		} else if currentTimecode > adsr.t_decay {
-			gain = 1.0 + float32(currentTimecode-adsr.t_decay)*adsr.d_decay
+		if adsr.on {
+			if currentTimecode > adsr.t_sustain {
+				gain = adsr.sustain
+			} else if currentTimecode > adsr.t_decay {
+				gain = 1.0 + float32(currentTimecode-adsr.t_decay)*adsr.d_decay
+			} else {
+				gain = float32(currentTimecode) * adsr.d_attack
+			}
 		} else {
-			gain = float32(currentTimecode) * adsr.d_attack
+			gain = adsr.releaseGain + float32(currentTimecode-adsr.releaseTimecode)*adsr.d_release
 		}
 
 		samples.Frames[i].L *= gain
