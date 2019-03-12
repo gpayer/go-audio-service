@@ -6,10 +6,10 @@ import (
 )
 
 type noteInfo struct {
-	timecode uint32
-	volume   float32
-	on       bool
-	offtime  uint32
+	timecode        uint32
+	releaseTimecode uint32
+	volume          float32
+	on              bool
 }
 
 type NoteMultiplexer struct {
@@ -30,11 +30,12 @@ func (n *NoteMultiplexer) SendNoteEvent(ev *NoteEvent) {
 	n.mtx.Lock()
 	defer n.mtx.Unlock()
 	if ev.eventtype == Pressed {
-		n.activeNotes[ev.note] = &noteInfo{timecode: 0, volume: ev.volume, on: true, offtime: 0}
+		n.activeNotes[ev.note] = &noteInfo{timecode: 0, volume: ev.volume, on: true}
 	} else {
 		info, ok := n.activeNotes[ev.note]
 		if ok {
 			info.on = false
+			info.releaseTimecode = info.timecode
 		}
 	}
 }
@@ -47,6 +48,8 @@ func (n *NoteMultiplexer) Read(samples *snd.Samples) {
 	n.mtx.Lock()
 	defer n.mtx.Unlock()
 
+	noteaware, isNoteAware := n.readable.(NoteAware)
+
 	length := len(samples.Frames)
 	if len(n.tmp.Frames) != length {
 		n.tmp.Frames = make([]snd.Sample, length)
@@ -58,23 +61,23 @@ func (n *NoteMultiplexer) Read(samples *snd.Samples) {
 	}
 
 	for note, info := range n.activeNotes {
+		if !info.on && isNoteAware {
+			noteaware.SetNoteReleased(info.releaseTimecode)
+		}
 		n.readable.ReadStateless(n.tmp, float32(note), info.timecode, info.on)
 		info.timecode += uint32(length)
 
-		onlyzero := true
 		for i := 0; i < length; i++ {
 			samples.Frames[i].L += n.tmp.Frames[i].L * info.volume
 			samples.Frames[i].R += n.tmp.Frames[i].R * info.volume
-			if n.tmp.Frames[i].L != 0 || n.tmp.Frames[i].R != 0 {
-				onlyzero = false
-			}
 		}
 
-		if !info.on {
-			info.offtime += uint32(length)
-			if info.offtime > 2*samples.SampleRate || onlyzero { // TODO: configurable
+		if isNoteAware {
+			if noteaware.NoteEnded() {
 				delete(n.activeNotes, note)
 			}
+		} else if !info.on {
+			delete(n.activeNotes, note)
 		}
 	}
 }

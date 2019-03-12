@@ -56,3 +56,8 @@ func Note(name string, octave int) NoteValue {
 	steps := 12*(octave-4) + noteHalfSteps[name]
 	return BaseA4 * NoteValue(math.Pow(twelthrootof2, float64(steps)))
 }
+
+type NoteAware interface {
+	SetNoteReleased(timecode uint32)
+	NoteEnded() bool
+}

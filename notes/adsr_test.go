@@ -30,23 +30,27 @@ func TestReleaseParameters(t *testing.T) {
 	assert.Equal(float32(0.5), adsr.releaseGain)
 	assert.Equal(uint32(1500), adsr.releaseTimecode)
 	assert.Equal(float32(-0.0005), adsr.d_release)
+	assert.Equal(uint32(2500), adsr.t_end)
 
 	adsr.calcRelease(750) // in decay
 	assert.Equal(float32(0.75), adsr.releaseGain)
 	assert.Equal(float32(-.75/1000.0), adsr.d_release)
+	assert.Equal(uint32(1750), adsr.t_end)
 
 	adsr.calcRelease(250) // in attack
 	assert.Equal(float32(0.5), adsr.releaseGain)
 	assert.Equal(float32(-.5/1000.0), adsr.d_release)
+	assert.Equal(uint32(1250), adsr.t_end)
 }
 
 func TestZeroSustainParameters(t *testing.T) {
 	assert := assert.New(t)
 
-	adsr := NewAdsr(0.5, 0.5, 0.0, 1.0)
+	adsr := NewAdsr(0.5, 0.5, 0.0, 0.0)
 	adsr.samplerate = 1000
 	adsr.calcParameters()
 
 	assert.Equal(uint32(1000), adsr.t_sustain)
 	assert.Equal(float32(-0.002), adsr.d_decay)
+	assert.Equal(uint32(1000), adsr.t_end)
 }

@@ -36,14 +36,14 @@ func main() {
 	defer output.Close()
 
 	piece := []noteShort{
-		{0, 0, notes.Pressed, "G", 2, 1.0},
-		{0, 1, notes.Pressed, "C", 3, 1.0},
+		{0, 1, notes.Pressed, "G", 2, 0.6},
+		{0, 0, notes.Pressed, "C", 3, 1.0},
 		{100, 0, notes.Released, "C", 3, 0.0},
-		{100, 0, notes.Released, "G", 2, 0.0},
+		{0, 1, notes.Released, "G", 2, 0.0},
 		{100, 0, notes.Pressed, "E", 3, 1.0},
 		{250, 0, notes.Released, "E", 3, 0.0},
 		{0, 0, notes.Pressed, "G", 3, 1.0},
-		{0, 1, notes.Pressed, "C", 2, 1.0},
+		{0, 1, notes.Pressed, "C", 2, .6},
 		{100, 1, notes.Released, "C", 2, 0.0},
 		{500, 0, notes.Released, "G", 3, 0.0},
 		{100, 1, notes.Pressed, "C", 4, 0.5},
@@ -51,7 +51,7 @@ func main() {
 	}
 
 	var instr []*notes.NoteMultiplexer
-	instr = append(instr, createInstrument(0.05, 0.3, 0.4, 0.5), createInstrument(0.1, 2.0, 0.0, 0.0))
+	instr = append(instr, createInstrument(0.05, 0.3, 0.8, 0.5), createInstrument(0.1, 2.0, 0.0, 0.0))
 
 	mixer := mix.NewMixer(44000)
 	ch1 := mixer.GetChannel()
@@ -77,7 +77,7 @@ func main() {
 		instr[n.ch].SendNoteEvent(notes.NewNoteEvent(n.evtype, notes.Note(n.notename, n.octave), n.volume))
 		fmt.Printf("%d: %d %s %d\n", n.ch, n.evtype, n.notename, n.octave)
 	}
-	time.Sleep(2000 * time.Millisecond)
+	time.Sleep(1000 * time.Millisecond)
 
 	_ = output.Stop()
 }

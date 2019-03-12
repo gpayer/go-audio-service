@@ -16,9 +16,10 @@ type Adsr struct {
 	d_decay         float32 // delta volume in decay phase
 	t_sustain       uint32  // timecode when sustain starts
 	d_release       float32 // delta volume in release phase
-	on              bool
+	t_end           uint32
 	releaseGain     float32 // current gain at point of release
 	releaseTimecode uint32
+	ended           bool
 }
 
 func NewAdsr(attack, decay, sustain, release float32) *Adsr {
@@ -27,7 +28,6 @@ func NewAdsr(attack, decay, sustain, release float32) *Adsr {
 		decay:   decay,
 		sustain: sustain,
 		release: release,
-		on:      false,
 	}
 }
 
@@ -38,6 +38,11 @@ func (adsr *Adsr) calcParameters() {
 	ft_sustain := float32(adsr.samplerate) * (adsr.attack + adsr.decay)
 	adsr.t_sustain = uint32(ft_sustain)
 	adsr.d_decay = (adsr.sustain - 1.0) / (float32(adsr.samplerate) * adsr.decay)
+	if adsr.sustain == 0.0 {
+		adsr.t_end = adsr.t_sustain
+	} else {
+		adsr.t_end = 999999
+	}
 }
 
 func (adsr *Adsr) calcRelease(timecode uint32) {
@@ -54,7 +59,9 @@ func (adsr *Adsr) calcRelease(timecode uint32) {
 	}
 	adsr.releaseGain = currentGain
 	adsr.releaseTimecode = timecode
-	adsr.d_release = -currentGain / (float32(adsr.samplerate) * adsr.release)
+	ft_decay := float32(adsr.samplerate) * adsr.release
+	adsr.d_release = -currentGain / ft_decay
+	adsr.t_end = adsr.releaseTimecode + uint32(ft_decay)
 }
 
 func (adsr *Adsr) SetReadable(r snd.Readable) {
@@ -66,21 +73,19 @@ func (adsr *Adsr) Read(samples *snd.Samples) {
 }
 
 func (adsr *Adsr) ReadStateless(samples *snd.Samples, freq float32, timecode uint32, on bool) {
+	adsr.ended = timecode > adsr.t_end
+
 	if samples.SampleRate != adsr.samplerate {
 		adsr.samplerate = samples.SampleRate
 		adsr.calcParameters()
 	}
-	if adsr.on && !on {
-		adsr.calcRelease(timecode)
-	}
-	adsr.on = on
 
 	adsr.readable.ReadStateless(samples, freq, timecode, true)
 
 	for i := 0; i < len(samples.Frames); i++ {
 		currentTimecode := timecode + uint32(i)
 		var gain float32
-		if adsr.on || adsr.sustain == 0.0 {
+		if on || adsr.sustain == 0.0 {
 			if currentTimecode > adsr.t_sustain && adsr.sustain > 0 {
 				gain = adsr.sustain
 			} else if currentTimecode > adsr.t_decay {
@@ -98,4 +103,11 @@ func (adsr *Adsr) ReadStateless(samples *snd.Samples, freq float32, timecode uin
 		samples.Frames[i].L *= gain
 		samples.Frames[i].R *= gain
 	}
+}
+
+func (adsr *Adsr) SetNoteReleased(timecode uint32) {
+	adsr.calcRelease(timecode)
+}
+func (adsr *Adsr) NoteEnded() bool {
+	return adsr.ended
 }
