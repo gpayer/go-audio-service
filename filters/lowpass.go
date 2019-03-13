@@ -6,13 +6,12 @@ import (
 
 type LowPassFilter struct {
 	snd.BasicWritableProvider
-	state        *BiquadState
-	rate         uint32
-	cutoff       float32
-	resonance    float32
-	cutoffInput  *snd.BasicConnector
-	readable     snd.Readable
-	cutoffValues *snd.Samples
+	state       *BiquadState
+	rate        uint32
+	cutoff      float32
+	resonance   float32
+	cutoffInput *snd.BasicConnector
+	readable    snd.Readable
 }
 
 func NewLowPass(rate uint32, cutoff, resonance float32) *LowPassFilter {
@@ -26,8 +25,7 @@ func NewLowPass(rate uint32, cutoff, resonance float32) *LowPassFilter {
 	}
 	state.Reset()
 	lowpass.InitBasicWritableProvider()
-	lowpass.cutoffInput = lowpass.AddInput("cutoff")
-	lowpass.cutoffValues = snd.NewSamples(rate, 512)
+	lowpass.cutoffInput = lowpass.AddInput("cutoff", cutoff)
 	return lowpass
 }
 
@@ -36,16 +34,11 @@ func (f *LowPassFilter) Read(samples *snd.Samples) {
 }
 
 func (f *LowPassFilter) ReadStateless(samples *snd.Samples, freq float32, state *snd.NoteState) {
-	if len(samples.Frames) != len(f.cutoffValues.Frames) {
-		f.cutoffValues = snd.NewSamples(samples.SampleRate, len(samples.Frames))
-	}
-	f.cutoffInput.ReadStateless(f.cutoffValues, freq, state)
-	if f.cutoffValues.Valid {
-		newCutoff := f.cutoffValues.Frames[0].L
-		if newCutoff != f.cutoff {
-			f.state.LowPass(f.rate, newCutoff, f.resonance)
-			f.cutoff = newCutoff
-		}
+	cutoffValues := f.cutoffInput.ReadBuffered(samples.SampleRate, len(samples.Frames), freq, state)
+	newCutoff := cutoffValues.Frames[0].L
+	if newCutoff != f.cutoff {
+		f.state.LowPass(f.rate, newCutoff, f.resonance)
+		f.cutoff = newCutoff
 	}
 	f.readable.ReadStateless(samples, freq, state)
 	f.state.Process(samples.Frames, samples.Frames)

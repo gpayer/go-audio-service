@@ -10,7 +10,6 @@ type Sample struct {
 type Samples struct {
 	Frames     []Sample
 	SampleRate uint32
-	Valid      bool
 }
 
 // Add adds one or more Samples to a Samples struct
@@ -22,6 +21,5 @@ func NewSamples(samplerate uint32, length int) *Samples {
 	return &Samples{
 		SampleRate: samplerate,
 		Frames:     make([]Sample, length),
-		Valid:      true,
 	}
 }

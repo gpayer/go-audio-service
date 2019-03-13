@@ -42,14 +42,23 @@ func (p *BasicWritableProvider) GetInput(name string) (Writable, bool) {
 	return w, ok
 }
 
-func (p *BasicWritableProvider) AddInput(name string) *BasicConnector {
-	c := &BasicConnector{}
+func (p *BasicWritableProvider) AddInput(name string, defaultValue float32) *BasicConnector {
+	c := &BasicConnector{
+		defaultValue: defaultValue,
+		samples:      NewSamples(44000, 128),
+	}
+	for i := 0; i < 128; i++ {
+		c.samples.Frames[i].L = defaultValue
+		c.samples.Frames[i].R = defaultValue
+	}
 	p.inputs[name] = c
 	return c
 }
 
 type BasicConnector struct {
-	r Readable
+	r            Readable
+	samples      *Samples
+	defaultValue float32
 }
 
 func (c *BasicConnector) SetReadable(r Readable) {
@@ -57,14 +66,27 @@ func (c *BasicConnector) SetReadable(r Readable) {
 }
 
 func (c *BasicConnector) Read(samples *Samples) {
-	if c.r != nil {
-		c.r.Read(samples)
-		samples.Valid = false
-	} else {
-		samples.Valid = false
+	c.ReadStateless(samples, 0, EmptyNoteState)
+}
+
+func (c *BasicConnector) prepareBuffer(samplerate uint32, length int) {
+	if c.samples.SampleRate != samplerate || len(c.samples.Frames) != length {
+		c.samples = NewSamples(samplerate, length)
+		for i := 0; i < length; i++ {
+			c.samples.Frames[i].L = c.defaultValue
+			c.samples.Frames[i].R = c.defaultValue
+		}
 	}
 }
 
 func (c *BasicConnector) ReadStateless(samples *Samples, freq float32, state *NoteState) {
-	c.r.ReadStateless(samples, freq, state)
+	c.prepareBuffer(samples.SampleRate, len(samples.Frames))
+	if c.r != nil {
+		c.r.ReadStateless(samples, freq, state)
+	}
+}
+
+func (c *BasicConnector) ReadBuffered(samplerate uint32, length int, freq float32, state *NoteState) *Samples {
+	c.ReadStateless(c.samples, freq, state)
+	return c.samples
 }
