@@ -34,4 +34,5 @@ func (c *ContinuousNote) ReadStateless(samples *snd.Samples, freq float32, _ *sn
 
 func (c *ContinuousNote) SetNote(note NoteValue) {
 	c.freq = float32(note)
+	c.state.Timecode = 0
 }

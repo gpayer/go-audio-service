@@ -87,6 +87,7 @@ func (c *BasicConnector) ReadStateless(samples *Samples, freq float32, state *No
 }
 
 func (c *BasicConnector) ReadBuffered(samplerate uint32, length int, freq float32, state *NoteState) *Samples {
+	c.prepareBuffer(samplerate, length)
 	c.ReadStateless(c.samples, freq, state)
 	return c.samples
 }

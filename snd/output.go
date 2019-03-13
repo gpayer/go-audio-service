@@ -2,6 +2,7 @@ package snd
 
 import (
 	"encoding/binary"
+	"time"
 
 	"github.com/gen2brain/malgo"
 )
@@ -65,6 +66,8 @@ func NewOutput(samplerate uint32, buffersize int) (*Output, error) {
 		return nil, err
 	}
 	o.samplerate = o.device.SampleRate()
+
+	time.Sleep(250 * time.Millisecond) // wait until everything is up and running
 
 	return o, nil
 }
