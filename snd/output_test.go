@@ -55,7 +55,7 @@ func (s *simpleReadable) Read(samples *Samples) {
 	}
 }
 
-func (s *simpleReadable) ReadStateless(samples *Samples, _ float32, _ uint32, _ bool) {
+func (s *simpleReadable) ReadStateless(samples *Samples, _ float32, _ *NoteState) {
 	s.Read(samples)
 }
 

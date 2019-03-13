@@ -5,23 +5,16 @@ import (
 	"sync"
 )
 
-type noteInfo struct {
-	timecode        uint32
-	releaseTimecode uint32
-	volume          float32
-	on              bool
-}
-
 type NoteMultiplexer struct {
 	mtx         sync.Mutex
-	activeNotes map[NoteValue]*noteInfo
+	activeNotes map[NoteValue]*snd.NoteState
 	tmp         *snd.Samples
 	readable    snd.Readable
 }
 
 func NewNoteMultiplexer() *NoteMultiplexer {
 	return &NoteMultiplexer{
-		activeNotes: make(map[NoteValue]*noteInfo),
+		activeNotes: make(map[NoteValue]*snd.NoteState),
 		tmp:         snd.NewSamples(44000, 128),
 	}
 }
@@ -30,12 +23,12 @@ func (n *NoteMultiplexer) SendNoteEvent(ev *NoteEvent) {
 	n.mtx.Lock()
 	defer n.mtx.Unlock()
 	if ev.eventtype == Pressed {
-		n.activeNotes[ev.note] = &noteInfo{timecode: 0, volume: ev.volume, on: true}
+		n.activeNotes[ev.note] = &snd.NoteState{Timecode: 0, Volume: ev.volume, On: true}
 	} else {
 		info, ok := n.activeNotes[ev.note]
 		if ok {
-			info.on = false
-			info.releaseTimecode = info.timecode
+			info.On = false
+			info.ReleaseTimecode = info.Timecode
 		}
 	}
 }
@@ -61,27 +54,24 @@ func (n *NoteMultiplexer) Read(samples *snd.Samples) {
 	}
 
 	for note, info := range n.activeNotes {
-		if !info.on && isNoteAware {
-			noteaware.SetNoteReleased(info.releaseTimecode)
-		}
-		n.readable.ReadStateless(n.tmp, float32(note), info.timecode, info.on)
-		info.timecode += uint32(length)
+		n.readable.ReadStateless(n.tmp, float32(note), info)
+		info.Timecode += uint32(length)
 
 		for i := 0; i < length; i++ {
-			samples.Frames[i].L += n.tmp.Frames[i].L * info.volume
-			samples.Frames[i].R += n.tmp.Frames[i].R * info.volume
+			samples.Frames[i].L += n.tmp.Frames[i].L * info.Volume
+			samples.Frames[i].R += n.tmp.Frames[i].R * info.Volume
 		}
 
 		if isNoteAware {
 			if noteaware.NoteEnded() {
 				delete(n.activeNotes, note)
 			}
-		} else if !info.on {
+		} else if !info.On {
 			delete(n.activeNotes, note)
 		}
 	}
 }
 
-func (n *NoteMultiplexer) ReadStateless(samples *snd.Samples, freq float32, timecode uint32, _ bool) {
+func (n *NoteMultiplexer) ReadStateless(samples *snd.Samples, freq float32, _ *snd.NoteState) {
 	n.Read(samples)
 }

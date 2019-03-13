@@ -6,7 +6,21 @@ type Writable interface {
 
 type Readable interface {
 	Read(samples *Samples)
-	ReadStateless(samples *Samples, freq float32, timecode uint32, on bool)
+	ReadStateless(samples *Samples, freq float32, state *NoteState)
+}
+
+type NoteState struct {
+	Timecode        uint32
+	ReleaseTimecode uint32
+	Volume          float32
+	On              bool
+}
+
+var EmptyNoteState = &NoteState{
+	Timecode:        0,
+	ReleaseTimecode: 0,
+	Volume:          0,
+	On:              true,
 }
 
 type BasicReadable struct{}
@@ -51,6 +65,6 @@ func (c *BasicConnector) Read(samples *Samples) {
 	}
 }
 
-func (c *BasicConnector) ReadStateless(samples *Samples, freq float32, timecode uint32, on bool) {
-	c.r.ReadStateless(samples, freq, timecode, on)
+func (c *BasicConnector) ReadStateless(samples *Samples, freq float32, state *NoteState) {
+	c.r.ReadStateless(samples, freq, state)
 }

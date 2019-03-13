@@ -63,10 +63,10 @@ func (m *Mixer) GetChannel() *Channel {
 }
 
 func (m *Mixer) Read(samples *snd.Samples) {
-	m.ReadStateless(samples, 0, 0, true)
+	m.ReadStateless(samples, 0, snd.EmptyNoteState)
 }
 
-func (m *Mixer) ReadStateless(samples *snd.Samples, freq float32, timecode uint32, on bool) {
+func (m *Mixer) ReadStateless(samples *snd.Samples, freq float32, state *snd.NoteState) {
 	length := len(samples.Frames)
 	if m.running {
 		if len(samples.Frames) != len(m.tmp.Frames) {
@@ -74,7 +74,7 @@ func (m *Mixer) ReadStateless(samples *snd.Samples, freq float32, timecode uint3
 		}
 		tmp := m.tmp
 		for _, channel := range m.channels {
-			channel.ReadStateless(tmp, freq, timecode, on)
+			channel.ReadStateless(tmp, freq, state)
 			for i := 0; i < length; i++ {
 				samples.Frames[i].L += tmp.Frames[i].L
 				samples.Frames[i].R += tmp.Frames[i].R

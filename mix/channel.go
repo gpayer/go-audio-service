@@ -56,11 +56,11 @@ func (ch *Channel) Pan() float32 {
 }
 
 func (ch *Channel) Read(samples *snd.Samples) {
-	ch.ReadStateless(samples, 0, 0, true)
+	ch.ReadStateless(samples, 0, snd.EmptyNoteState)
 }
 
-func (ch *Channel) ReadStateless(samples *snd.Samples, freq float32, timecode uint32, on bool) {
-	ch.readable.ReadStateless(samples, freq, timecode, on)
+func (ch *Channel) ReadStateless(samples *snd.Samples, freq float32, state *snd.NoteState) {
+	ch.readable.ReadStateless(samples, freq, state)
 	scale := float32(1.0 - math.Abs(float64(ch.pan))*.5)
 	lgain := (ch.pan + 1.0) * scale
 	rgain := (1.0 - ch.pan) * scale

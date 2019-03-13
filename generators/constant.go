@@ -28,6 +28,6 @@ func (c *Constant) Read(samples *snd.Samples) {
 	}
 }
 
-func (c *Constant) ReadStateless(samples *snd.Samples, freq float32, timecode uint32, _ bool) {
+func (c *Constant) ReadStateless(samples *snd.Samples, freq float32, _ *snd.NoteState) {
 	c.Read(samples)
 }

@@ -5,15 +5,15 @@ import (
 )
 
 type ContinuousNote struct {
-	r        snd.Readable
-	freq     float32
-	timecode uint32
+	r     snd.Readable
+	freq  float32
+	state *snd.NoteState
 }
 
 func NewContinuousNote(note NoteValue) *ContinuousNote {
 	return &ContinuousNote{
-		freq:     float32(note),
-		timecode: 0,
+		freq:  float32(note),
+		state: &snd.NoteState{Volume: 1.0, Timecode: 0, On: true},
 	}
 }
 
@@ -23,12 +23,12 @@ func (c *ContinuousNote) SetReadable(r snd.Readable) {
 
 func (c *ContinuousNote) Read(samples *snd.Samples) {
 	length := len(samples.Frames)
-	c.r.ReadStateless(samples, c.freq, c.timecode, true)
-	c.timecode += uint32(length)
-	c.timecode %= samples.SampleRate
+	c.r.ReadStateless(samples, c.freq, c.state)
+	c.state.Timecode += uint32(length)
+	c.state.Timecode %= samples.SampleRate
 }
 
-func (c *ContinuousNote) ReadStateless(samples *snd.Samples, freq float32, timecode uint32, _ bool) {
+func (c *ContinuousNote) ReadStateless(samples *snd.Samples, freq float32, _ *snd.NoteState) {
 	c.Read(samples)
 }
 

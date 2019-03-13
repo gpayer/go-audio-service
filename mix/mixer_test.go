@@ -17,7 +17,7 @@ func (r *readableFunc) Read(samples *snd.Samples) {
 	r.fn(samples)
 }
 
-func (r *readableFunc) ReadStateless(samples *snd.Samples, freq float32, timecode uint32, _ bool) {
+func (r *readableFunc) ReadStateless(samples *snd.Samples, freq float32, _ *snd.NoteState) {
 	r.fn(samples)
 }
 

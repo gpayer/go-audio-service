@@ -58,6 +58,5 @@ func Note(name string, octave int) NoteValue {
 }
 
 type NoteAware interface {
-	SetNoteReleased(timecode uint32)
 	NoteEnded() bool
 }

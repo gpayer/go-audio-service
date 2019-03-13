@@ -32,14 +32,14 @@ func NewLowPass(rate uint32, cutoff, resonance float32) *LowPassFilter {
 }
 
 func (f *LowPassFilter) Read(samples *snd.Samples) {
-	f.ReadStateless(samples, 0, 0, true)
+	f.ReadStateless(samples, 0, snd.EmptyNoteState)
 }
 
-func (f *LowPassFilter) ReadStateless(samples *snd.Samples, freq float32, timecode uint32, on bool) {
+func (f *LowPassFilter) ReadStateless(samples *snd.Samples, freq float32, state *snd.NoteState) {
 	if len(samples.Frames) != len(f.cutoffValues.Frames) {
 		f.cutoffValues = snd.NewSamples(samples.SampleRate, len(samples.Frames))
 	}
-	f.cutoffInput.ReadStateless(f.cutoffValues, freq, timecode, on)
+	f.cutoffInput.ReadStateless(f.cutoffValues, freq, state)
 	if f.cutoffValues.Valid {
 		newCutoff := f.cutoffValues.Frames[0].L
 		if newCutoff != f.cutoff {
@@ -47,7 +47,7 @@ func (f *LowPassFilter) ReadStateless(samples *snd.Samples, freq float32, timeco
 			f.cutoff = newCutoff
 		}
 	}
-	f.readable.ReadStateless(samples, freq, timecode, on)
+	f.readable.ReadStateless(samples, freq, state)
 	f.state.Process(samples.Frames, samples.Frames)
 }
 

@@ -4,11 +4,6 @@ import (
 	"go-audio-service/snd"
 )
 
-type Generator interface {
-	ReadStateless(samples *snd.Samples, freq float32, timecode uint32)
-	SetGenerator(g Generator)
-}
-
 type Rect struct {
 	snd.BasicReadable
 	samplerate uint32
@@ -59,7 +54,7 @@ func (r *Rect) Stop() {
 	r.running = false
 }
 
-func (r *Rect) ReadStateless(samples *snd.Samples, freq float32, timecode uint32, on bool) {
+func (r *Rect) ReadStateless(samples *snd.Samples, freq float32, state *snd.NoteState) {
 	length := len(samples.Frames)
 	var v float32
 	var max uint32
@@ -70,9 +65,9 @@ func (r *Rect) ReadStateless(samples *snd.Samples, freq float32, timecode uint32
 		return
 	}
 	half := max / 2
-	current := timecode % max
+	current := state.Timecode % max
 	for i := 0; i < length; i++ {
-		if on {
+		if state.On {
 			if current < half {
 				v = 0.5
 			} else {

@@ -20,14 +20,16 @@ type Adsr struct {
 	releaseGain     float32 // current gain at point of release
 	releaseTimecode uint32
 	ended           bool
+	subnotestate    *snd.NoteState
 }
 
 func NewAdsr(attack, decay, sustain, release float32) *Adsr {
 	return &Adsr{
-		attack:  attack,
-		decay:   decay,
-		sustain: sustain,
-		release: release,
+		attack:       attack,
+		decay:        decay,
+		sustain:      sustain,
+		release:      release,
+		subnotestate: &snd.NoteState{On: true},
 	}
 }
 
@@ -72,20 +74,26 @@ func (adsr *Adsr) Read(samples *snd.Samples) {
 	adsr.readable.Read(samples)
 }
 
-func (adsr *Adsr) ReadStateless(samples *snd.Samples, freq float32, timecode uint32, on bool) {
-	adsr.ended = timecode > adsr.t_end
+func (adsr *Adsr) ReadStateless(samples *snd.Samples, freq float32, state *snd.NoteState) {
+	adsr.ended = state.Timecode > adsr.t_end
 
 	if samples.SampleRate != adsr.samplerate {
 		adsr.samplerate = samples.SampleRate
 		adsr.calcParameters()
 	}
+	if !state.On {
+		adsr.calcRelease(state.ReleaseTimecode)
+	}
 
-	adsr.readable.ReadStateless(samples, freq, timecode, true)
+	adsr.subnotestate.Timecode = state.Timecode
+	adsr.subnotestate.ReleaseTimecode = state.ReleaseTimecode
+	adsr.subnotestate.Volume = state.Volume
+	adsr.readable.ReadStateless(samples, freq, adsr.subnotestate)
 
 	for i := 0; i < len(samples.Frames); i++ {
-		currentTimecode := timecode + uint32(i)
+		currentTimecode := state.Timecode + uint32(i)
 		var gain float32
-		if on || adsr.sustain == 0.0 {
+		if state.On || adsr.sustain == 0.0 {
 			if currentTimecode > adsr.t_sustain && adsr.sustain > 0 {
 				gain = adsr.sustain
 			} else if currentTimecode > adsr.t_decay {
@@ -105,9 +113,6 @@ func (adsr *Adsr) ReadStateless(samples *snd.Samples, freq float32, timecode uin
 	}
 }
 
-func (adsr *Adsr) SetNoteReleased(timecode uint32) {
-	adsr.calcRelease(timecode)
-}
 func (adsr *Adsr) NoteEnded() bool {
 	return adsr.ended
 }

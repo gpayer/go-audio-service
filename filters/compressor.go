@@ -362,18 +362,20 @@ func (state *CompressorState) Process(size int, input, output []snd.Sample) {
 }
 
 type Compressor struct {
-	state    *CompressorState
-	buffer   []snd.Sample
-	readable snd.Readable
-	input    *snd.Samples
-	output   []snd.Sample
+	state        *CompressorState
+	buffer       []snd.Sample
+	readable     snd.Readable
+	input        *snd.Samples
+	output       []snd.Sample
+	subnotestate *snd.NoteState
 }
 
 func NewCompressor(samplerate uint32, state *CompressorState) *Compressor {
 	return &Compressor{
-		state:  state,
-		input:  snd.NewSamples(samplerate, 128),
-		output: make([]snd.Sample, 128),
+		state:        state,
+		input:        snd.NewSamples(samplerate, 128),
+		output:       make([]snd.Sample, 128),
+		subnotestate: &snd.NoteState{},
 	}
 }
 
@@ -382,13 +384,15 @@ func (comp *Compressor) SetReadable(r snd.Readable) {
 }
 
 func (comp *Compressor) Read(samples *snd.Samples) {
-	comp.ReadStateless(samples, 0, 0, true)
+	comp.ReadStateless(samples, 0, snd.EmptyNoteState)
 }
 
-func (comp *Compressor) ReadStateless(samples *snd.Samples, freq float32, timecode uint32, on bool) {
+func (comp *Compressor) ReadStateless(samples *snd.Samples, freq float32, state *snd.NoteState) {
 	length := len(samples.Frames)
 	for len(comp.buffer) < length {
-		comp.readable.ReadStateless(comp.input, freq, timecode+uint32(len(comp.buffer)), on)
+		*comp.subnotestate = *state
+		comp.subnotestate.Timecode = state.Timecode + uint32(len(comp.buffer))
+		comp.readable.ReadStateless(comp.input, freq, comp.subnotestate)
 		comp.state.Process(128, comp.input.Frames, comp.output)
 		comp.buffer = append(comp.buffer, comp.output...)
 	}
