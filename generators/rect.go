@@ -5,53 +5,26 @@ import (
 )
 
 type Rect struct {
-	snd.BasicReadable
+	snd.BasicWritableProvider
 	samplerate uint32
-	high       bool
-	current    int
-	max        int
-	running    bool
+	freq       float32
+	fm         *snd.BasicConnector
+	am         *snd.BasicConnector
 }
 
 func NewRect(samplerate uint32, freq float32) *Rect {
-	return &Rect{
+	r := &Rect{
 		samplerate: samplerate,
-		high:       false,
-		current:    0,
-		max:        int(float32(samplerate) / freq / 2),
-		running:    false,
+		freq:       freq,
 	}
+	r.InitBasicWritableProvider()
+	r.fm = r.AddInput("fm", 0.0)
+	r.am = r.AddInput("am", 0.0)
+	return r
 }
 
 func (r *Rect) Read(samples *snd.Samples) {
-	length := len(samples.Frames)
-	var v float32
-	for i := 0; i < length; i++ {
-		if r.running {
-			if r.high {
-				v = 0.5
-			} else {
-				v = -0.5
-			}
-		} else {
-			v = 0.0
-		}
-		r.current++
-		if r.current >= r.max {
-			r.high = !r.high
-			r.current = 0
-		}
-		samples.Frames[i].L = v
-		samples.Frames[i].R = v
-	}
-}
-
-func (r *Rect) Start() {
-	r.running = true
-}
-
-func (r *Rect) Stop() {
-	r.running = false
+	r.ReadStateless(samples, 0, snd.EmptyNoteState)
 }
 
 func (r *Rect) ReadStateless(samples *snd.Samples, freq float32, state *snd.NoteState) {
@@ -61,17 +34,21 @@ func (r *Rect) ReadStateless(samples *snd.Samples, freq float32, state *snd.Note
 	if freq > 0 {
 		max = uint32(float32(samples.SampleRate) / freq)
 	} else {
-		r.Read(samples)
-		return
+		max = uint32(float32(samples.SampleRate) / r.freq)
 	}
-	half := max / 2
+
+	fm := r.fm.ReadBuffered(samples.SampleRate, len(samples.Frames), 0, state)
+	am := r.am.ReadBuffered(samples.SampleRate, len(samples.Frames), 0, state)
+
 	current := state.Timecode % max
 	for i := 0; i < length; i++ {
+		max += uint32(fm.Frames[i].L)
+		half := max / 2
 		if state.On {
 			if current < half {
-				v = 0.5
+				v = 0.5 + am.Frames[i].L
 			} else {
-				v = -0.5
+				v = -0.5 + am.Frames[i].L
 			}
 		} else {
 			v = 0
