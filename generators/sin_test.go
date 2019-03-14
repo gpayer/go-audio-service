@@ -2,6 +2,7 @@ package generators
 
 import (
 	"go-audio-service/snd"
+	"math"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -20,4 +21,7 @@ func TestSin(t *testing.T) {
 	sin.ReadStateless(samples, 0, notestate)
 
 	assert.Equal(float32(0.0), samples.Frames[0].L)
+	assert.True(samples.Frames[25].L > 0.49)
+	assert.True(math.Abs(float64(samples.Frames[50].L)) < 0.001)
+	assert.True(samples.Frames[75].L < -0.49)
 }

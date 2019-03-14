@@ -46,13 +46,14 @@ func (r *Rect) ReadStateless(samples *snd.Samples, freq float32, state *snd.Note
 		half := max / 2
 		if state.On {
 			if current < half {
-				v = 0.5 + am.Frames[i].L
+				v = 0.5
 			} else {
-				v = -0.5 + am.Frames[i].L
+				v = -0.5
 			}
 		} else {
 			v = 0
 		}
+		v *= (1.0 + am.Frames[i].L)
 		samples.Frames[i].L = v
 		samples.Frames[i].R = v
 		current++

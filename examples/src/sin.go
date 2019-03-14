@@ -1,4 +1,4 @@
-package main
+package examples
 
 import (
 	"go-audio-service/filters"
@@ -8,13 +8,7 @@ import (
 	"time"
 )
 
-func main() {
-	output, err := snd.NewOutput(44000, 512)
-	if err != nil {
-		panic(err)
-	}
-	defer output.Close()
-
+func runSin(output *snd.Output) error {
 	sin := generators.NewSin(880)
 	fminput, _ := sin.GetInput("fm")
 	fmmod := generators.NewSin(880)
@@ -25,12 +19,17 @@ func main() {
 	cont.SetReadable(sin)
 	output.SetReadable(cont)
 
-	err = output.Start()
+	err := output.Start()
 	if err != nil {
-		panic(err)
+		return err
 	}
 
 	time.Sleep(time.Second)
 
 	_ = output.Stop()
+	return nil
+}
+
+func init() {
+	AddExample("Sin", runSin)
 }

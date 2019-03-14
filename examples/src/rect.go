@@ -16,12 +16,6 @@ func run(output *snd.Output) error {
 	fmgain.SetReadable(fmmod)
 	fm.SetReadable(fmgain)
 
-	am, _ := rect.GetInput("am")
-	ammod := generators.NewSin(5)
-	amgain := filters.NewGain(.5)
-	amgain.SetReadable(ammod)
-	am.SetReadable(amgain)
-
 	gain := filters.NewGain(0.3)
 	gain.SetReadable(rect)
 	output.SetReadable(gain)
