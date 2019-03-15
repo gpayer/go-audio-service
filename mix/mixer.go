@@ -86,4 +86,8 @@ func (m *Mixer) ReadStateless(samples *snd.Samples, freq float32, state *snd.Not
 			samples.Frames[i].R = 0.0
 		}
 	}
+	for i := 0; i < length; i++ {
+		samples.Frames[i].L *= m.gain
+		samples.Frames[i].R *= m.gain
+	}
 }

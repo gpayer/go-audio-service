@@ -1,4 +1,4 @@
-package main
+package examples
 
 import (
 	"fmt"
@@ -37,12 +37,7 @@ func createInstrument(instrtype int, a, d, s, r float32) *notes.NoteMultiplexer 
 	return multi1
 }
 
-func main() {
-	output, err := snd.NewOutput(44000, 512)
-	if err != nil {
-		panic(err)
-	}
-	defer output.Close()
+func runAdsr(output snd.IOutput) error {
 
 	piece := []noteShort{
 		{0, 1, notes.Pressed, "G", 2, 0.6},
@@ -71,12 +66,12 @@ func main() {
 	ch2.SetReadable(instr[1])
 	ch2.SetGain(0.4)
 
-	mixer.SetGain(0.6)
+	mixer.SetGain(0.3)
 	output.SetReadable(mixer)
 
-	err = output.Start()
+	err := output.Start()
 	if err != nil {
-		panic(err)
+		return err
 	}
 
 	for _, n := range piece {
@@ -88,5 +83,9 @@ func main() {
 	}
 	time.Sleep(1000 * time.Millisecond)
 
-	_ = output.Stop()
+	return output.Stop()
+}
+
+func init() {
+	AddExample("Adsr", runAdsr)
 }
