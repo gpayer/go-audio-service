@@ -1,4 +1,4 @@
-package main
+package examples
 
 import (
 	"fmt"
@@ -8,13 +8,7 @@ import (
 	"time"
 )
 
-func main() {
-	output, err := snd.NewOutput(44000, 512)
-	if err != nil {
-		panic(err)
-	}
-	defer output.Close()
-
+func runLowpass(output snd.IOutput) error {
 	var cutoff float32 = 800.0
 
 	lowpass := filters.NewLowPass(44000, cutoff, 1.0)
@@ -28,10 +22,9 @@ func main() {
 	cutoffValue := generators.NewConstant(44000, cutoff)
 	cutoffValue.SetOutput(cutoffInput)
 
-	rect.Start()
-	err = output.Start()
+	err := output.Start()
 	if err != nil {
-		panic(err)
+		return err
 	}
 	for i := 0; i < 100; i++ {
 		cutoff -= 7.0
@@ -40,6 +33,9 @@ func main() {
 	}
 	time.Sleep(500 * time.Millisecond)
 
-	rect.Stop()
-	_ = output.Stop()
+	return output.Stop()
+}
+
+func init() {
+	AddExample("Lowpass", runLowpass)
 }

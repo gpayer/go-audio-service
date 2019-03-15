@@ -1,4 +1,4 @@
-package main
+package examples
 
 import (
 	"go-audio-service/generators"
@@ -7,13 +7,7 @@ import (
 	"time"
 )
 
-func main() {
-	output, err := snd.NewOutput(44000, 512)
-	if err != nil {
-		panic(err)
-	}
-	defer output.Close()
-
+func runCompressor(output snd.IOutput) error {
 	var gain float32 = 0.1
 
 	m := mix.NewMixer(44000)
@@ -23,10 +17,9 @@ func main() {
 	r := generators.NewRect(44000, 440)
 	ch.SetReadable(r)
 
-	r.Start()
-	err = output.Start()
+	err := output.Start()
 	if err != nil {
-		panic(err)
+		return err
 	}
 
 	var dg float32 = .9 / 100.0
@@ -37,5 +30,9 @@ func main() {
 	}
 	time.Sleep(time.Second)
 
-	_ = output.Stop()
+	return output.Stop()
+}
+
+func init() {
+	AddExample("Compressor", runCompressor)
 }

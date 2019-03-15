@@ -44,7 +44,7 @@ func (s *Sin) ReadStateless(samples *snd.Samples, freq float32, state *snd.NoteS
 	am := s.am.ReadBuffered(samples.SampleRate, len(samples.Frames), 0, state)
 
 	for i := 0; i < len(samples.Frames); i++ {
-		v := float32(math.Sin(float64(phi+fm.Frames[i].L))) * am.Frames[i].L
+		v := float32(math.Sin(float64(phi+fm.Frames[i].L))) * (1.0 + am.Frames[i].L)
 		samples.Frames[i].L = v
 		samples.Frames[i].R = v
 		phi += s.dphi

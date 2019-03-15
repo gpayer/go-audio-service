@@ -7,14 +7,14 @@ import (
 type Example struct {
 	Id   int
 	Name string
-	fn   func(*snd.Output) error
+	fn   func(snd.IOutput) error
 }
 
 var exampleList []*Example
 var counter int = 1
-var output *snd.Output
+var output snd.IOutput
 
-func AddExample(name string, fn func(*snd.Output) error) {
+func AddExample(name string, fn func(snd.IOutput) error) {
 	exampleList = append(exampleList, &Example{
 		Id:   counter,
 		Name: name,
@@ -45,8 +45,19 @@ func Close() {
 	output.Close()
 }
 
-func init() {
-	out, err := snd.NewOutput(44000, 512)
+const (
+	AudioOutput = iota
+	DatOutput
+)
+
+func SetOutput(outputtype int, param string) {
+	var out snd.IOutput
+	var err error
+	if outputtype == AudioOutput {
+		out, err = snd.NewOutput(44000, 512)
+	} else if outputtype == DatOutput {
+		out, err = snd.NewDatWriter(44000, param)
+	}
 	if err != nil {
 		panic(err)
 	}

@@ -1,11 +1,27 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	examples "go-audio-service/examples/src"
 )
 
 func main() {
+	outputtypeptr := flag.String("type", "audio", "output type: audio, dat")
+	fileptr := flag.String("file", "", "output file for dat writer")
+
+	flag.Parse()
+
+	var outputtype int
+	switch *outputtypeptr {
+	case "audio":
+		outputtype = examples.AudioOutput
+	case "dat":
+		outputtype = examples.DatOutput
+	}
+
+	examples.SetOutput(outputtype, *fileptr)
+
 	list := examples.GetExamples()
 	defer examples.Close()
 

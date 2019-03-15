@@ -8,16 +8,27 @@ import (
 	"time"
 )
 
-func runSin(output *snd.Output) error {
+func runSin(output snd.IOutput) error {
 	sin := generators.NewSin(880)
+
 	fminput, _ := sin.GetInput("fm")
 	fmmod := generators.NewSin(880)
-	fmgain := filters.NewGain(.2)
+	fmgain := filters.NewGain(.9)
 	fmgain.SetReadable(fmmod)
 	fminput.SetReadable(fmgain)
-	cont := notes.NewContinuousNote(notes.Note(notes.C, 4))
+
+	aminput, _ := sin.GetInput("am")
+	ammod := generators.NewSin(3)
+	amgain := filters.NewGain(.2)
+	amgain.SetReadable(ammod)
+	aminput.SetReadable(amgain)
+
+	cont := notes.NewContinuousNote(notes.Note(notes.C, 3))
 	cont.SetReadable(sin)
-	output.SetReadable(cont)
+
+	gain := filters.NewGain(.3)
+	gain.SetReadable(cont)
+	output.SetReadable(gain)
 
 	err := output.Start()
 	if err != nil {

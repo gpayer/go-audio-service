@@ -7,6 +7,13 @@ import (
 	"github.com/gen2brain/malgo"
 )
 
+type IOutput interface {
+	Writable
+	Start() error
+	Stop() error
+	Close()
+}
+
 // Output object for sound output
 type Output struct {
 	context    *malgo.AllocatedContext
@@ -14,6 +21,7 @@ type Output struct {
 	samplerate uint32
 	samplesize int
 	readable   Readable
+	active     bool
 }
 
 // NewOutput creates a new Output instance
@@ -34,6 +42,18 @@ func NewOutput(samplerate uint32, buffersize int) (*Output, error) {
 	o.samplesize = malgo.SampleSizeInBytes(deviceConfig.Format)
 
 	onSendSamples := func(requestedSampleCount uint32, samples []byte) uint32 {
+		if !o.active {
+			time.Sleep(10 * time.Microsecond)
+			offset := 0
+			for i := uint32(0); i < requestedSampleCount; i++ {
+				samples[offset] = 0
+				samples[offset+1] = 0
+				samples[offset+2] = 0
+				samples[offset+3] = 0
+				offset += 4
+			}
+			return requestedSampleCount
+		}
 		// fmt.Println(requestedSampleCount, len(samples))
 		input := Samples{
 			SampleRate: o.samplerate,
@@ -74,6 +94,9 @@ func NewOutput(samplerate uint32, buffersize int) (*Output, error) {
 
 // Close closes the output
 func (o *Output) Close() {
+	if o.device.IsStarted() {
+		_ = o.device.Stop()
+	}
 	o.device.Uninit()
 	_ = o.context.Uninit()
 	o.context.Free()
@@ -84,14 +107,15 @@ func (o *Output) Start() (err error) {
 	if !o.device.IsStarted() {
 		err = o.device.Start()
 	}
+	if err == nil {
+		o.active = true
+	}
 	return
 }
 
 // Stop stops playback
 func (o *Output) Stop() (err error) {
-	if o.device.IsStarted() {
-		err = o.device.Stop()
-	}
+	o.active = false
 	return
 }
 
