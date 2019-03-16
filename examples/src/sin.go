@@ -6,9 +6,11 @@ import (
 	"go-audio-service/notes"
 	"go-audio-service/snd"
 	"time"
+
+	"github.com/faiface/pixel/pixelgl"
 )
 
-func runSin(output snd.IOutput) error {
+func runSin(output snd.IOutput, _ *pixelgl.Window) error {
 	sin := generators.NewSin(880)
 
 	fminput, _ := sin.GetInput("fm")

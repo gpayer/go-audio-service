@@ -2,19 +2,21 @@ package examples
 
 import (
 	"go-audio-service/snd"
+
+	"github.com/faiface/pixel/pixelgl"
 )
 
 type Example struct {
 	Id   int
 	Name string
-	fn   func(snd.IOutput) error
+	fn   func(snd.IOutput, *pixelgl.Window) error
 }
 
 var exampleList []*Example
 var counter int = 1
 var output snd.IOutput
 
-func AddExample(name string, fn func(snd.IOutput) error) {
+func AddExample(name string, fn func(snd.IOutput, *pixelgl.Window) error) {
 	exampleList = append(exampleList, &Example{
 		Id:   counter,
 		Name: name,
@@ -27,11 +29,16 @@ func GetExamples() []*Example {
 	return exampleList
 }
 
-func RunExample(id int) {
-	err := exampleList[id].fn(output)
-	if err != nil {
-		panic(err)
-	}
+func RunExample(id int, win *pixelgl.Window) chan struct{} {
+	done := make(chan struct{})
+	go func() {
+		err := exampleList[id].fn(output, win)
+		if err != nil {
+			panic(err)
+		}
+		done <- struct{}{}
+	}()
+	return done
 }
 
 func Start() {

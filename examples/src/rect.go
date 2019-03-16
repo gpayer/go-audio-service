@@ -6,9 +6,11 @@ import (
 	"go-audio-service/notes"
 	"go-audio-service/snd"
 	"time"
+
+	"github.com/faiface/pixel/pixelgl"
 )
 
-func run(output snd.IOutput) error {
+func runRect(output snd.IOutput, _ *pixelgl.Window) error {
 	rect := generators.NewRect(44000, 440)
 
 	fm, _ := rect.GetInput("fm")
@@ -38,5 +40,5 @@ func run(output snd.IOutput) error {
 }
 
 func init() {
-	AddExample("Rect", run)
+	AddExample("Rect", runRect)
 }

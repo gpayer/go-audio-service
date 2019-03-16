@@ -7,6 +7,8 @@ import (
 	"go-audio-service/notes"
 	"go-audio-service/snd"
 	"time"
+
+	"github.com/faiface/pixel/pixelgl"
 )
 
 type noteShort struct {
@@ -37,7 +39,7 @@ func createInstrument(instrtype int, a, d, s, r float32) *notes.NoteMultiplexer 
 	return multi1
 }
 
-func runAdsr(output snd.IOutput) error {
+func runAdsr(output snd.IOutput, _ *pixelgl.Window) error {
 
 	piece := []noteShort{
 		{0, 1, notes.Pressed, "G", 2, 0.6},

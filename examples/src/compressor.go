@@ -1,13 +1,14 @@
 package examples
 
 import (
+	"github.com/faiface/pixel/pixelgl"
 	"go-audio-service/generators"
 	"go-audio-service/mix"
 	"go-audio-service/snd"
 	"time"
 )
 
-func runCompressor(output snd.IOutput) error {
+func runCompressor(output snd.IOutput, _ *pixelgl.Window) error {
 	var gain float32 = 0.1
 
 	m := mix.NewMixer(44000)

@@ -6,9 +6,11 @@ import (
 	"go-audio-service/generators"
 	"go-audio-service/snd"
 	"time"
+
+	"github.com/faiface/pixel/pixelgl"
 )
 
-func runLowpass(output snd.IOutput) error {
+func runLowpass(output snd.IOutput, _ *pixelgl.Window) error {
 	var cutoff float32 = 800.0
 
 	lowpass := filters.NewLowPass(44000, cutoff, 1.0)
