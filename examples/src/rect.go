@@ -5,12 +5,16 @@ import (
 	"go-audio-service/generators"
 	"go-audio-service/notes"
 	"go-audio-service/snd"
-	"time"
 
 	"github.com/faiface/pixel/pixelgl"
 )
 
-func runRect(output snd.IOutput, _ *pixelgl.Window) error {
+type rectExample struct {
+	totalTime float32
+	gain      snd.Readable
+}
+
+func (r *rectExample) Init() {
 	rect := generators.NewRect(44000, 440)
 
 	fm, _ := rect.GetInput("fm")
@@ -30,15 +34,26 @@ func runRect(output snd.IOutput, _ *pixelgl.Window) error {
 
 	gain := filters.NewGain(0.3)
 	gain.SetReadable(cont)
-	output.SetReadable(gain)
+	r.gain = gain
+}
 
+func (r *rectExample) Mounted() {
+	r.totalTime = 0
+	GetOutput().SetReadable(r.gain)
 	Start()
-	time.Sleep(time.Second)
-	Stop()
+}
 
-	return nil
+func (r *rectExample) Unmounted() {
+	Stop()
+}
+
+func (r *rectExample) Update(win *pixelgl.Window, dt float32) {
+	r.totalTime += dt
+	if r.totalTime >= 1 {
+		SwitchScene("main")
+	}
 }
 
 func init() {
-	AddExample("Rect", runRect)
+	AddExample("Rect", &rectExample{totalTime: 0})
 }

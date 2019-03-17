@@ -20,6 +20,23 @@ type noteShort struct {
 	volume   float32
 }
 
+type adsrExample struct{}
+
+func (a *adsrExample) Init() {
+}
+
+func (a *adsrExample) Mounted() {
+	panic("not implemented")
+}
+
+func (a *adsrExample) Unmounted() {
+	panic("not implemented")
+}
+
+func (a *adsrExample) Update(win *pixelgl.Window, dt float32) {
+	panic("not implemented")
+}
+
 func createInstrument(instrtype int, a, d, s, r float32) *notes.NoteMultiplexer {
 	var gen snd.Readable
 	if instrtype == 1 {
@@ -89,5 +106,5 @@ func runAdsr(output snd.IOutput, _ *pixelgl.Window) error {
 }
 
 func init() {
-	AddExample("Adsr", runAdsr)
+	AddExample("Adsr", &adsrExample{})
 }

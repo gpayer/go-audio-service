@@ -2,26 +2,25 @@ package examples
 
 import (
 	"go-audio-service/snd"
-
-	"github.com/faiface/pixel/pixelgl"
 )
 
 type Example struct {
-	Id   int
-	Name string
-	fn   func(snd.IOutput, *pixelgl.Window) error
+	Id    int
+	Name  string
+	Scene INode
 }
 
 var exampleList []*Example
 var counter int = 1
 var output snd.IOutput
 
-func AddExample(name string, fn func(snd.IOutput, *pixelgl.Window) error) {
+func AddExample(name string, scene INode) {
 	exampleList = append(exampleList, &Example{
-		Id:   counter,
-		Name: name,
-		fn:   fn,
+		Id:    counter,
+		Name:  name,
+		Scene: scene,
 	})
+	scene.Init()
 	counter++
 }
 
@@ -29,16 +28,16 @@ func GetExamples() []*Example {
 	return exampleList
 }
 
-func RunExample(id int, win *pixelgl.Window) chan struct{} {
-	done := make(chan struct{})
-	go func() {
-		err := exampleList[id].fn(output, win)
-		if err != nil {
-			panic(err)
+func GetOutput() snd.IOutput {
+	return output
+}
+
+func RunExample(id int) {
+	for _, example := range exampleList {
+		if example.Id == id {
+			SetRoot(example.Scene)
 		}
-		done <- struct{}{}
-	}()
-	return done
+	}
 }
 
 func Start() {

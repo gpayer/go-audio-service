@@ -5,12 +5,16 @@ import (
 	"go-audio-service/generators"
 	"go-audio-service/notes"
 	"go-audio-service/snd"
-	"time"
 
 	"github.com/faiface/pixel/pixelgl"
 )
 
-func runSin(output snd.IOutput, _ *pixelgl.Window) error {
+type sinExample struct {
+	totalTime float32
+	gain      snd.Readable
+}
+
+func (s *sinExample) Init() {
 	sin := generators.NewSin(880)
 
 	fminput, _ := sin.GetInput("fm")
@@ -30,19 +34,26 @@ func runSin(output snd.IOutput, _ *pixelgl.Window) error {
 
 	gain := filters.NewGain(.3)
 	gain.SetReadable(cont)
-	output.SetReadable(gain)
+	s.gain = gain
+}
 
-	err := output.Start()
-	if err != nil {
-		return err
+func (s *sinExample) Mounted() {
+	s.totalTime = 0
+	GetOutput().SetReadable(s.gain)
+	Start()
+}
+
+func (s *sinExample) Unmounted() {
+	Stop()
+}
+
+func (s *sinExample) Update(_ *pixelgl.Window, dt float32) {
+	s.totalTime += dt
+	if s.totalTime >= 1.0 {
+		SwitchScene("main")
 	}
-
-	time.Sleep(time.Second)
-
-	_ = output.Stop()
-	return nil
 }
 
 func init() {
-	AddExample("Sin", runSin)
+	AddExample("Sin", &sinExample{totalTime: 0})
 }

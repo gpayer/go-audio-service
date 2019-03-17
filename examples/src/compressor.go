@@ -1,12 +1,31 @@
 package examples
 
 import (
-	"github.com/faiface/pixel/pixelgl"
 	"go-audio-service/generators"
 	"go-audio-service/mix"
 	"go-audio-service/snd"
 	"time"
+
+	"github.com/faiface/pixel/pixelgl"
 )
+
+type compressorExample struct {
+}
+
+func (c *compressorExample) Init() {
+}
+
+func (c *compressorExample) Mounted() {
+	panic("not implemented")
+}
+
+func (c *compressorExample) Unmounted() {
+	panic("not implemented")
+}
+
+func (c *compressorExample) Update(win *pixelgl.Window, dt float32) {
+	panic("not implemented")
+}
 
 func runCompressor(output snd.IOutput, _ *pixelgl.Window) error {
 	var gain float32 = 0.1
@@ -35,5 +54,5 @@ func runCompressor(output snd.IOutput, _ *pixelgl.Window) error {
 }
 
 func init() {
-	AddExample("Compressor", runCompressor)
+	AddExample("Compressor", &compressorExample{})
 }

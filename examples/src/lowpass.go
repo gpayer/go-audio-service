@@ -5,39 +5,53 @@ import (
 	"go-audio-service/filters"
 	"go-audio-service/generators"
 	"go-audio-service/snd"
-	"time"
 
 	"github.com/faiface/pixel/pixelgl"
 )
 
-func runLowpass(output snd.IOutput, _ *pixelgl.Window) error {
-	var cutoff float32 = 800.0
+type lowpassExample struct {
+	totaltime   float32
+	readable    snd.Readable
+	cutoff      float32
+	cutoffValue *generators.Constant
+}
 
-	lowpass := filters.NewLowPass(44000, cutoff, 1.0)
-	lowpass.SetOutput(output)
+func (l *lowpassExample) Init() {
+	l.cutoff = 800.0
+
+	lowpass := filters.NewLowPass(44000, l.cutoff, 1.0)
 	rect := generators.NewRect(44000, 800)
 	lowpass.SetReadable(rect)
+	l.readable = lowpass
 	cutoffInput, ok := lowpass.GetInput("cutoff")
 	if !ok {
 		panic(fmt.Errorf("no cutoff input"))
 	}
-	cutoffValue := generators.NewConstant(44000, cutoff)
+	cutoffValue := generators.NewConstant(44000, l.cutoff)
 	cutoffValue.SetOutput(cutoffInput)
+	l.cutoffValue = cutoffValue
+}
 
-	err := output.Start()
-	if err != nil {
-		return err
-	}
-	for i := 0; i < 100; i++ {
-		cutoff -= 7.0
-		cutoffValue.Value = cutoff
-		time.Sleep(5 * time.Millisecond)
-	}
-	time.Sleep(500 * time.Millisecond)
+func (l *lowpassExample) Mounted() {
+	l.cutoff = 800.0
+	l.totaltime = 0
+	GetOutput().SetReadable(l.readable)
+	Start()
+}
 
-	return output.Stop()
+func (l *lowpassExample) Unmounted() {
+	Stop()
+}
+
+func (l *lowpassExample) Update(win *pixelgl.Window, dt float32) {
+	l.totaltime += dt
+	if l.totaltime > 1.0 {
+		SwitchScene("main")
+	}
+	l.cutoff -= 700.0 / 0.5 * dt
+	l.cutoffValue.Value = l.cutoff
 }
 
 func init() {
-	AddExample("Lowpass", runLowpass)
+	AddExample("Lowpass", &lowpassExample{totaltime: 0})
 }
