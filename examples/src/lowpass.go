@@ -48,8 +48,10 @@ func (l *lowpassExample) Update(win *pixelgl.Window, dt float32) {
 	if l.totaltime > 1.0 {
 		SwitchScene("main")
 	}
-	l.cutoff -= 700.0 / 0.5 * dt
-	l.cutoffValue.Value = l.cutoff
+	if l.cutoff > 100.0 {
+		l.cutoff -= 700.0 / 0.5 * dt
+		l.cutoffValue.Value = l.cutoff
+	}
 }
 
 func init() {

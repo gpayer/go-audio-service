@@ -17,6 +17,7 @@ func TestParameters(t *testing.T) {
 	assert.Equal(1000, int(adsr.t_sustain))
 	assert.Equal(float32(0.002), adsr.d_attack)
 	assert.Equal(float32(-0.001), adsr.d_decay)
+	assert.True(adsr.t_end > 100000)
 }
 
 func TestReleaseParameters(t *testing.T) {

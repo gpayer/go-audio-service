@@ -43,7 +43,7 @@ func (adsr *Adsr) calcParameters() {
 	if adsr.sustain == 0.0 {
 		adsr.t_end = adsr.t_sustain
 	} else {
-		adsr.t_end = 999999
+		adsr.t_end = 300 * adsr.samplerate
 	}
 }
 

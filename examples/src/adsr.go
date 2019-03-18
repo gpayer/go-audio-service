@@ -6,13 +6,12 @@ import (
 	"go-audio-service/mix"
 	"go-audio-service/notes"
 	"go-audio-service/snd"
-	"time"
 
 	"github.com/faiface/pixel/pixelgl"
 )
 
 type noteShort struct {
-	wait     time.Duration
+	wait     float32
 	ch       int
 	evtype   int
 	notename string
@@ -20,21 +19,65 @@ type noteShort struct {
 	volume   float32
 }
 
-type adsrExample struct{}
+type adsrExample struct {
+	totaltime float32
+	outrotime float32
+	piece     []noteShort
+	readable  snd.Readable
+	instr     []*notes.NoteMultiplexer
+}
 
 func (a *adsrExample) Init() {
+	piece := []noteShort{
+		{0, 1, notes.Pressed, "G", 2, 0.6},
+		{0, 0, notes.Pressed, "C", 3, 1.0},
+		{100, 0, notes.Released, "C", 3, 0.0},
+		{0, 1, notes.Released, "G", 2, 0.0},
+		{100, 0, notes.Pressed, "E", 3, 1.0},
+		{250, 0, notes.Released, "E", 3, 0.0},
+		{0, 0, notes.Pressed, "G", 3, 1.0},
+		{0, 1, notes.Pressed, "C", 2, .6},
+		{100, 1, notes.Released, "C", 2, 0.0},
+		{500, 0, notes.Released, "G", 3, 0.0},
+		{100, 1, notes.Pressed, "C", 4, 0.5},
+		{100, 1, notes.Released, "C", 4, 0.0},
+	}
+	eventtime := float32(0)
+
+	for _, note := range piece {
+		note.wait /= 1000.0
+		eventtime += note.wait
+		note.wait = eventtime
+		a.piece = append(a.piece, note)
+	}
+
+	var instr []*notes.NoteMultiplexer
+	instr = append(instr, createInstrument(1, 0.05, 0.3, 0.8, 0.5), createInstrument(2, 0.1, 2.0, 0.0, 0.0))
+
+	mixer := mix.NewMixer(44000)
+	ch1 := mixer.GetChannel()
+	ch1.SetReadable(instr[0])
+	ch1.SetGain(0.3)
+
+	ch2 := mixer.GetChannel()
+	ch2.SetReadable(instr[1])
+	ch2.SetGain(0.4)
+
+	mixer.SetGain(0.3)
+
+	a.readable = mixer
+	a.instr = instr
 }
 
 func (a *adsrExample) Mounted() {
-	panic("not implemented")
+	a.totaltime = 0
+	a.outrotime = 0
+	GetOutput().SetReadable(a.readable)
+	Start()
 }
 
 func (a *adsrExample) Unmounted() {
-	panic("not implemented")
-}
-
-func (a *adsrExample) Update(win *pixelgl.Window, dt float32) {
-	panic("not implemented")
+	Stop()
 }
 
 func createInstrument(instrtype int, a, d, s, r float32) *notes.NoteMultiplexer {
@@ -56,53 +99,21 @@ func createInstrument(instrtype int, a, d, s, r float32) *notes.NoteMultiplexer 
 	return multi1
 }
 
-func runAdsr(output snd.IOutput, _ *pixelgl.Window) error {
-
-	piece := []noteShort{
-		{0, 1, notes.Pressed, "G", 2, 0.6},
-		{0, 0, notes.Pressed, "C", 3, 1.0},
-		{100, 0, notes.Released, "C", 3, 0.0},
-		{0, 1, notes.Released, "G", 2, 0.0},
-		{100, 0, notes.Pressed, "E", 3, 1.0},
-		{250, 0, notes.Released, "E", 3, 0.0},
-		{0, 0, notes.Pressed, "G", 3, 1.0},
-		{0, 1, notes.Pressed, "C", 2, .6},
-		{100, 1, notes.Released, "C", 2, 0.0},
-		{500, 0, notes.Released, "G", 3, 0.0},
-		{100, 1, notes.Pressed, "C", 4, 0.5},
-		{100, 1, notes.Released, "C", 4, 0.0},
-	}
-
-	var instr []*notes.NoteMultiplexer
-	instr = append(instr, createInstrument(1, 0.05, 0.3, 0.8, 0.5), createInstrument(2, 0.1, 2.0, 0.0, 0.0))
-
-	mixer := mix.NewMixer(44000)
-	ch1 := mixer.GetChannel()
-	ch1.SetReadable(instr[0])
-	ch1.SetGain(0.3)
-
-	ch2 := mixer.GetChannel()
-	ch2.SetReadable(instr[1])
-	ch2.SetGain(0.4)
-
-	mixer.SetGain(0.3)
-	output.SetReadable(mixer)
-
-	err := output.Start()
-	if err != nil {
-		return err
-	}
-
-	for _, n := range piece {
-		if n.wait > 0 {
-			time.Sleep(n.wait * time.Millisecond)
+func (a *adsrExample) Update(win *pixelgl.Window, dt float32) {
+	a.totaltime += dt
+	if len(a.piece) > 0 {
+		n := a.piece[0]
+		if a.totaltime >= n.wait {
+			a.piece = a.piece[1:]
+			a.instr[n.ch].SendNoteEvent(notes.NewNoteEvent(n.evtype, notes.Note(n.notename, n.octave), n.volume))
+			fmt.Printf("%d: %d %s %d\n", n.ch, n.evtype, n.notename, n.octave)
 		}
-		instr[n.ch].SendNoteEvent(notes.NewNoteEvent(n.evtype, notes.Note(n.notename, n.octave), n.volume))
-		fmt.Printf("%d: %d %s %d\n", n.ch, n.evtype, n.notename, n.octave)
+	} else {
+		a.outrotime += dt
+		if a.outrotime > 1.0 {
+			SwitchScene("main")
+		}
 	}
-	time.Sleep(1000 * time.Millisecond)
-
-	return output.Stop()
 }
 
 func init() {

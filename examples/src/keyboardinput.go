@@ -15,7 +15,7 @@ type keyboardExample struct {
 }
 
 func (k *keyboardExample) Init() {
-	instr := createInstrument(1, 0.1, 0.1, 0.8, 0.5)
+	instr := createInstrument(1, 0.01, 0.1, 0.8, 0.5)
 
 	gain := filters.NewGain(0.3)
 	gain.SetReadable(instr)
