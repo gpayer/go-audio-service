@@ -40,6 +40,9 @@ func (adsr *Adsr) calcParameters() {
 	ft_sustain := float32(adsr.samplerate) * (adsr.attack + adsr.decay)
 	adsr.t_sustain = uint32(ft_sustain)
 	adsr.d_decay = (adsr.sustain - 1.0) / (float32(adsr.samplerate) * adsr.decay)
+}
+
+func (adsr *Adsr) calcEnd() {
 	if adsr.sustain == 0.0 {
 		adsr.t_end = adsr.t_sustain
 	} else {
@@ -75,15 +78,17 @@ func (adsr *Adsr) Read(samples *snd.Samples) {
 }
 
 func (adsr *Adsr) ReadStateless(samples *snd.Samples, freq float32, state *snd.NoteState) {
-	adsr.ended = state.Timecode > adsr.t_end
-
 	if samples.SampleRate != adsr.samplerate {
 		adsr.samplerate = samples.SampleRate
 		adsr.calcParameters()
 	}
 	if !state.On {
 		adsr.calcRelease(state.ReleaseTimecode)
+	} else {
+		adsr.calcEnd()
 	}
+
+	adsr.ended = state.Timecode > adsr.t_end
 
 	adsr.subnotestate.Timecode = state.Timecode
 	adsr.subnotestate.ReleaseTimecode = state.ReleaseTimecode
