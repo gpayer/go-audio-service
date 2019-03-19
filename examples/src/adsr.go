@@ -27,7 +27,7 @@ type adsrExample struct {
 	instr     []*notes.NoteMultiplexer
 }
 
-func (a *adsrExample) Init() {
+func (a *adsrExample) initPiece() {
 	piece := []noteShort{
 		{0, 1, notes.Pressed, "G", 2, 0.6},
 		{0, 0, notes.Pressed, "C", 3, 1.0},
@@ -50,7 +50,9 @@ func (a *adsrExample) Init() {
 		note.wait = eventtime
 		a.piece = append(a.piece, note)
 	}
+}
 
+func (a *adsrExample) Init() {
 	var instr []*notes.NoteMultiplexer
 	instr = append(instr, createInstrument(1, 0.05, 0.3, 0.8, 0.5), createInstrument(2, 0.1, 2.0, 0.0, 0.0))
 
@@ -72,6 +74,7 @@ func (a *adsrExample) Init() {
 func (a *adsrExample) Mounted() {
 	a.totaltime = 0
 	a.outrotime = 0
+	a.initPiece()
 	GetOutput().SetReadable(a.readable)
 	Start()
 }

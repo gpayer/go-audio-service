@@ -82,6 +82,10 @@ func (c *BasicConnector) prepareBuffer(samplerate uint32, length int) {
 func (c *BasicConnector) ReadStateless(samples *Samples, freq float32, state *NoteState) {
 	c.prepareBuffer(samples.SampleRate, len(samples.Frames))
 	if c.r != nil {
+		for i := 0; i < len(samples.Frames); i++ {
+			c.samples.Frames[i].L = 0
+			c.samples.Frames[i].R = 0
+		}
 		c.r.ReadStateless(samples, freq, state)
 	}
 }

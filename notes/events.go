@@ -19,6 +19,10 @@ func NewNoteEvent(evtype int, note NoteValue, volume float32) *NoteEvent {
 	}
 }
 
+func (ev *NoteEvent) GetData() (int, NoteValue, float32) {
+	return ev.eventtype, ev.note, ev.volume
+}
+
 type NoteEventReceiver interface {
 	SendNoteEvent(ev *NoteEvent)
 }

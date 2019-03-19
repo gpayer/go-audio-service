@@ -21,7 +21,7 @@ type keyDef struct {
 
 type keyboardExample struct {
 	readable snd.Readable
-	instr    *notes.NoteMultiplexer
+	instr    *DoubleOsci
 	keys     map[pixelgl.Button]*keyDef
 	keyIdx   []pixelgl.Button
 	whiteKey *imdraw.IMDraw
@@ -29,11 +29,15 @@ type keyboardExample struct {
 }
 
 func (k *keyboardExample) Init() {
-	instr := createInstrument(1, 0.01, 0.1, 0.8, 0.5)
+	instr := NewDoubleOsci(0.01, 0.1, 0.8, 0.5, 2.3, 0.1)
 
 	gain := filters.NewGain(0.3)
 	gain.SetReadable(instr)
-	k.readable = gain
+	compstate := filters.NewCompressorState()
+	compstate.DefaultCompressor(44000)
+	comp := filters.NewCompressor(44000, compstate)
+	comp.SetReadable(gain)
+	k.readable = comp
 	k.instr = instr
 
 	k.keyIdx = []pixelgl.Button{
