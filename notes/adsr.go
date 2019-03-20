@@ -33,6 +33,11 @@ func NewAdsr(attack, decay, sustain, release float32) *Adsr {
 	}
 }
 
+func (adsr *Adsr) SetAttack(v float32) {
+	adsr.attack = v
+	adsr.calcParameters()
+}
+
 func (adsr *Adsr) calcParameters() {
 	ft_decay := float32(adsr.samplerate) * adsr.attack
 	adsr.t_decay = uint32(ft_decay)

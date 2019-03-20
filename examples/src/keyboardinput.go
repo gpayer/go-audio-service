@@ -1,10 +1,13 @@
 package examples
 
 import (
+	"fmt"
 	"go-audio-service/filters"
 	"go-audio-service/notes"
 	"go-audio-service/snd"
 	"image/color"
+
+	"github.com/faiface/pixel/text"
 
 	"golang.org/x/image/colornames"
 
@@ -20,16 +23,20 @@ type keyDef struct {
 }
 
 type keyboardExample struct {
-	readable snd.Readable
-	instr    *DoubleOsci
-	keys     map[pixelgl.Button]*keyDef
-	keyIdx   []pixelgl.Button
-	whiteKey *imdraw.IMDraw
-	blackKey *imdraw.IMDraw
+	readable       snd.Readable
+	instr          *DoubleOsci
+	keys           map[pixelgl.Button]*keyDef
+	keyIdx         []pixelgl.Button
+	whiteKey       *imdraw.IMDraw
+	blackKey       *imdraw.IMDraw
+	attackTxt      *text.Text
+	attackSlider   *Slider
+	attackValueTxt *text.Text
 }
 
 func (k *keyboardExample) Init() {
-	instr := NewDoubleOsci(0.01, 0.1, 0.8, 0.5, 2.3, 0.1)
+	attack := float32(0.05)
+	instr := NewDoubleOsci(attack, 0.1, 0.8, 0.5, 2.3, 0.1)
 
 	gain := filters.NewGain(0.3)
 	gain.SetReadable(instr)
@@ -73,18 +80,28 @@ func (k *keyboardExample) Init() {
 	k.blackKey.Color = colornames.White
 	k.blackKey.Push(pixel.V(0, 0), pixel.V(0, 100), pixel.V(30, 100), pixel.V(30, 0))
 	k.blackKey.Polygon(0)
+
+	k.attackTxt = text.New(pixel.ZV, FontService.Get("basic"))
+	fmt.Fprint(k.attackTxt, "Attack")
+	k.attackSlider = NewSlider(80, 30, 0, 1, attack)
+	k.attackSlider.OnChange(func(v float32) {
+		k.instr.SetAttack(v)
+	})
+	k.attackValueTxt = text.New(pixel.ZV, FontService.Get("basic"))
 }
 
 func (k *keyboardExample) Mounted() {
 	GetOutput().SetReadable(k.readable)
 	Start()
+	k.attackSlider.Mounted()
 }
 
 func (k *keyboardExample) Unmounted() {
+	k.attackSlider.Unmounted()
 	Stop()
 }
 
-func (k *keyboardExample) Update(win *pixelgl.Window, dt float32) {
+func (k *keyboardExample) Update(win *pixelgl.Window, dt float32, mat pixel.Matrix) {
 	if win.JustPressed(pixelgl.KeyQ) {
 		SwitchScene("main")
 	} else {
@@ -105,7 +122,7 @@ func (k *keyboardExample) Update(win *pixelgl.Window, dt float32) {
 	k.blackKey.Draw(blackKey)
 
 	bounds := win.Bounds()
-	orig := pixel.IM.Moved(pixel.V(35, bounds.H()-60))
+	orig := mat.Moved(pixel.V(35, bounds.H()-70))
 
 	xWhite := 0.0
 	xBlack := 27.0 - 54.0
@@ -136,6 +153,12 @@ func (k *keyboardExample) Update(win *pixelgl.Window, dt float32) {
 			blackKey.DrawColorMask(win, orig.Moved(pixel.V(xBlack, 25)), maskcolor)
 		}
 	}
+	top := win.Bounds().H()
+	k.attackTxt.Draw(win, mat.Moved(pixel.V(20, top-290)))
+	k.attackSlider.Update(win, dt, mat.Moved(pixel.V(100, top-300)))
+	k.attackValueTxt.Clear()
+	fmt.Fprintf(k.attackValueTxt, "%.2f", k.attackSlider.Value())
+	k.attackValueTxt.Draw(win, mat.Moved(pixel.V(200, top-290)))
 }
 
 func init() {

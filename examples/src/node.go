@@ -1,6 +1,7 @@
 package examples
 
 import (
+	"github.com/faiface/pixel"
 	"github.com/faiface/pixel/pixelgl"
 )
 
@@ -8,7 +9,7 @@ type INode interface {
 	Init()
 	Mounted()
 	Unmounted()
-	Update(win *pixelgl.Window, dt float32)
+	Update(win *pixelgl.Window, dt float32, mat pixel.Matrix)
 }
 
 var sceneList map[string]INode

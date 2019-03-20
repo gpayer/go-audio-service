@@ -1,6 +1,7 @@
 package examples
 
 import (
+	"github.com/faiface/pixel"
 	"go-audio-service/filters"
 	"go-audio-service/generators"
 	"go-audio-service/mix"
@@ -41,7 +42,7 @@ func (c *compressorExample) Unmounted() {
 	Stop()
 }
 
-func (c *compressorExample) Update(win *pixelgl.Window, dt float32) {
+func (c *compressorExample) Update(win *pixelgl.Window, dt float32, mat pixel.Matrix) {
 	c.totaltime += dt
 	var gain float32 = .5 / 2.0 * c.totaltime
 	c.ch.SetGain(gain)

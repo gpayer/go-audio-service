@@ -50,3 +50,7 @@ func (o *DoubleOsci) ReadStateless(samples *snd.Samples, freq float32, state *sn
 func (o *DoubleOsci) SendNoteEvent(ev *notes.NoteEvent) {
 	o.multi.SendNoteEvent(ev)
 }
+
+func (o *DoubleOsci) SetAttack(v float32) {
+	o.adsr.SetAttack(v)
+}

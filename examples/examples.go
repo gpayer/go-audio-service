@@ -40,7 +40,7 @@ func (m *mainScene) Mounted() {
 func (m *mainScene) Unmounted() {
 }
 
-func (m *mainScene) Update(win *pixelgl.Window, dt float32) {
+func (m *mainScene) Update(win *pixelgl.Window, dt float32, mat pixel.Matrix) {
 	m.exampleListTxt.Draw(win, pixel.IM.Moved(pixel.V(20, win.Bounds().H()-20.0)))
 
 	for id, nk := range m.numkeys {
@@ -77,7 +77,7 @@ func run() {
 		}
 
 		win.Clear(colornames.Black)
-		examples.GetRoot().Update(win, dt)
+		examples.GetRoot().Update(win, dt, pixel.IM)
 		win.Update()
 	}
 }

@@ -1,6 +1,7 @@
 package examples
 
 import (
+	"github.com/faiface/pixel"
 	"go-audio-service/filters"
 	"go-audio-service/generators"
 	"go-audio-service/notes"
@@ -47,7 +48,7 @@ func (r *rectExample) Unmounted() {
 	Stop()
 }
 
-func (r *rectExample) Update(win *pixelgl.Window, dt float32) {
+func (r *rectExample) Update(win *pixelgl.Window, dt float32, mat pixel.Matrix) {
 	r.totalTime += dt
 	if r.totalTime >= 1 {
 		SwitchScene("main")

@@ -6,6 +6,8 @@ import (
 	"go-audio-service/notes"
 	"go-audio-service/snd"
 
+	"github.com/faiface/pixel"
+
 	"github.com/faiface/pixel/pixelgl"
 )
 
@@ -47,7 +49,7 @@ func (s *sinExample) Unmounted() {
 	Stop()
 }
 
-func (s *sinExample) Update(_ *pixelgl.Window, dt float32) {
+func (s *sinExample) Update(_ *pixelgl.Window, dt float32, mat pixel.Matrix) {
 	s.totalTime += dt
 	if s.totalTime >= 1.0 {
 		SwitchScene("main")
