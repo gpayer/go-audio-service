@@ -1,56 +1,53 @@
 package examples
 
 import (
+	"go-audio-service/filters"
 	"go-audio-service/generators"
 	"go-audio-service/mix"
-	"go-audio-service/snd"
-	"time"
 
 	"github.com/faiface/pixel/pixelgl"
 )
 
 type compressorExample struct {
+	totaltime float32
+	comp      *filters.Compressor
+	compstate *filters.CompressorState
+	ch        *mix.Channel
 }
 
 func (c *compressorExample) Init() {
+	m := mix.NewMixer(44000)
+	c.ch = m.GetChannel()
+	c.ch.SetGain(0.1)
+	r := generators.NewRect(44000, 440)
+	c.ch.SetReadable(r)
+	compstate := filters.NewCompressorState()
+	compstate.DefaultCompressor(44000)
+	c.compstate = compstate
+	comp := filters.NewCompressor(44000, compstate)
+	comp.SetReadable(m)
+	c.comp = comp
 }
 
 func (c *compressorExample) Mounted() {
-	panic("not implemented")
+	c.totaltime = 0
+	c.ch.SetGain(0.1)
+	c.compstate.DefaultCompressor(44000)
+	output.SetReadable(c.comp)
+	Start()
 }
 
 func (c *compressorExample) Unmounted() {
-	panic("not implemented")
+	Stop()
 }
 
 func (c *compressorExample) Update(win *pixelgl.Window, dt float32) {
-	panic("not implemented")
-}
-
-func runCompressor(output snd.IOutput, _ *pixelgl.Window) error {
-	var gain float32 = 0.1
-
-	m := mix.NewMixer(44000)
-	ch := m.GetChannel()
-	ch.SetGain(gain)
-	m.SetOutput(output)
-	r := generators.NewRect(44000, 440)
-	ch.SetReadable(r)
-
-	err := output.Start()
-	if err != nil {
-		return err
+	c.totaltime += dt
+	var gain float32 = .5 / 2.0 * c.totaltime
+	c.ch.SetGain(gain)
+	if c.totaltime > 2.0 {
+		SwitchScene("main")
 	}
-
-	var dg float32 = .9 / 100.0
-	for i := 0; i < 100; i++ {
-		time.Sleep(20 * time.Millisecond)
-		gain += dg
-		ch.SetGain(gain)
-	}
-	time.Sleep(time.Second)
-
-	return output.Stop()
 }
 
 func init() {

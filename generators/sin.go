@@ -7,11 +7,12 @@ import (
 
 type Sin struct {
 	snd.BasicWritableProvider
-	freq       float32
-	samplerate uint32
-	dphi       float32
-	fm         *snd.BasicConnector
-	am         *snd.BasicConnector
+	freq          float32
+	samplerate    uint32
+	dphi          float32
+	fm            *snd.BasicConnector
+	am            *snd.BasicConnector
+	FreqModFactor float32
 }
 
 func NewSin(freq float32) *Sin {
@@ -19,6 +20,7 @@ func NewSin(freq float32) *Sin {
 	s.InitBasicWritableProvider()
 	s.fm = s.AddInput("fm", 0.0)
 	s.am = s.AddInput("am", .5)
+	s.FreqModFactor = 0
 	return s
 }
 
@@ -40,7 +42,7 @@ func (s *Sin) ReadStateless(samples *snd.Samples, freq float32, state *snd.NoteS
 	}
 	phi := float32(state.Timecode) * s.dphi
 
-	fm := s.fm.ReadBuffered(samples.SampleRate, len(samples.Frames), 0, state)
+	fm := s.fm.ReadBuffered(samples.SampleRate, len(samples.Frames), freq*s.FreqModFactor, state)
 	am := s.am.ReadBuffered(samples.SampleRate, len(samples.Frames), 0, state)
 
 	for i := 0; i < len(samples.Frames); i++ {
