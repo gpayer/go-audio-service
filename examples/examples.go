@@ -4,6 +4,10 @@ import (
 	"flag"
 	"fmt"
 	examples "go-audio-service/examples/src"
+	"log"
+	"os"
+	"runtime"
+	"runtime/pprof"
 	"time"
 
 	"github.com/faiface/pixel"
@@ -51,6 +55,8 @@ func (m *mainScene) Update(win *pixelgl.Window, dt float32, mat pixel.Matrix) {
 	}
 }
 
+var memprofile = flag.String("memprofile", "", "write memory profile to `file`")
+
 func run() {
 	cfg := pixelgl.WindowConfig{
 		Title:  "go-audio-service examples",
@@ -73,12 +79,24 @@ func run() {
 		dt := float32(time.Since(last).Seconds())
 		last = time.Now()
 		if win.JustPressed(pixelgl.KeyEscape) {
-			return
+			break
 		}
 
 		win.Clear(colornames.Black)
 		examples.GetRoot().Update(win, dt, pixel.IM)
 		win.Update()
+	}
+
+	if *memprofile != "" {
+		fmemprofile, err := os.Create(*memprofile)
+		if err != nil {
+			panic(err)
+		}
+		defer fmemprofile.Close()
+		runtime.GC()
+		if err := pprof.WriteHeapProfile(fmemprofile); err != nil {
+			log.Fatal("could not write memory profile: ", err)
+		}
 	}
 }
 

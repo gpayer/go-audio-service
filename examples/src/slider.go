@@ -26,10 +26,20 @@ func (s *Slider) Unmounted() {
 }
 
 func (s *Slider) Update(win *pixelgl.Window, dt float32, mat pixel.Matrix) {
-	if win.JustPressed(pixelgl.MouseButtonLeft) {
+	if win.JustPressed(pixelgl.MouseButtonLeft) || win.MouseScroll().Y != 0 {
 		pos := mat.Unproject(win.MousePosition())
 		if pixel.R(0, 0, s.w, s.h).Contains(pos) {
-			s.current = s.min + (s.max-s.min)*float32(pos.X/s.w)
+			if win.JustPressed(pixelgl.MouseButtonLeft) {
+				s.current = s.min + (s.max-s.min)*float32(pos.X/s.w)
+			} else {
+				s.current += float32(0.1 * win.MouseScroll().Y)
+				if s.current > s.max {
+					s.current = s.max
+				}
+				if s.current < s.min {
+					s.current = s.min
+				}
+			}
 			s.dirty = true
 			s.onchange(s.current)
 		}
@@ -49,6 +59,7 @@ func (s *Slider) Update(win *pixelgl.Window, dt float32, mat pixel.Matrix) {
 		im.Push(pixel.V(1, 1), pixel.V(currentw, 1), pixel.V(currentw, s.h-1), pixel.V(1, s.h-1))
 		im.Polygon(0)
 		im.Draw(s.canvas)
+		s.dirty = false
 	}
 	s.canvas.Draw(win, mat.Moved(pixel.V(s.w/2, s.h/2)))
 }

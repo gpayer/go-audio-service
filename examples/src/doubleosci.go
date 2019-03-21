@@ -54,3 +54,15 @@ func (o *DoubleOsci) SendNoteEvent(ev *notes.NoteEvent) {
 func (o *DoubleOsci) SetAttack(v float32) {
 	o.adsr.SetAttack(v)
 }
+
+func (o *DoubleOsci) SetDecay(v float32) {
+	o.adsr.SetDecay(v)
+}
+
+func (o *DoubleOsci) SetSustain(v float32) {
+	o.adsr.SetSustain(v)
+}
+
+func (o *DoubleOsci) SetRelease(v float32) {
+	o.adsr.SetRelease(v)
+}

@@ -22,21 +22,58 @@ type keyDef struct {
 	white   bool
 }
 
+type confSlider struct {
+	w        float64
+	txt      *text.Text
+	slider   *Slider
+	valueTxt *text.Text
+	onchange func(v float32)
+}
+
+func newConfSlider(desc string, w, h float64, min, max, v float32, onchange func(v float32)) *confSlider {
+	s := &confSlider{w: w, onchange: onchange}
+	s.txt = text.New(pixel.ZV, FontService.Get("basic"))
+	fmt.Fprint(s.txt, desc)
+	s.slider = NewSlider(w, h, min, max, v)
+	s.slider.OnChange(func(v float32) {
+		s.onchange(v)
+		s.valueTxt.Clear()
+		fmt.Fprintf(s.valueTxt, "%.2f", s.slider.Value())
+	})
+	s.valueTxt = text.New(pixel.ZV, FontService.Get("basic"))
+	s.valueTxt.Clear()
+	fmt.Fprintf(s.valueTxt, "%.2f", s.slider.Value())
+	return s
+}
+
+func (s *confSlider) Update(win *pixelgl.Window, dt float32, mat pixel.Matrix) {
+	s.slider.Update(win, dt, mat.Moved(pixel.V(80, 0)))
+	s.txt.Draw(win, mat.Moved(pixel.V(0, 10)))
+	s.valueTxt.Draw(win, mat.Moved(pixel.V(120+s.w, 10)))
+}
+
 type keyboardExample struct {
-	readable       snd.Readable
-	instr          *DoubleOsci
-	keys           map[pixelgl.Button]*keyDef
-	keyIdx         []pixelgl.Button
-	whiteKey       *imdraw.IMDraw
-	blackKey       *imdraw.IMDraw
-	attackTxt      *text.Text
-	attackSlider   *Slider
-	attackValueTxt *text.Text
+	readable      snd.Readable
+	instr         *DoubleOsci
+	keys          map[pixelgl.Button]*keyDef
+	keyIdx        []pixelgl.Button
+	whiteKey      *imdraw.IMDraw
+	blackKey      *imdraw.IMDraw
+	sliderAttack  *confSlider
+	sliderDecay   *confSlider
+	sliderSustain *confSlider
+	sliderRelease *confSlider
+	whiteCanvas   *pixelgl.Canvas
+	blackCanvas   *pixelgl.Canvas
 }
 
 func (k *keyboardExample) Init() {
-	attack := float32(0.05)
-	instr := NewDoubleOsci(attack, 0.1, 0.8, 0.5, 2.3, 0.1)
+	var attack, decay, sustain, release float32
+	attack = 0.05
+	decay = 0.1
+	sustain = 0.8
+	release = 0.5
+	instr := NewDoubleOsci(attack, decay, sustain, release, 2.3, 0.1)
 
 	gain := filters.NewGain(0.3)
 	gain.SetReadable(instr)
@@ -81,23 +118,26 @@ func (k *keyboardExample) Init() {
 	k.blackKey.Push(pixel.V(0, 0), pixel.V(0, 100), pixel.V(30, 100), pixel.V(30, 0))
 	k.blackKey.Polygon(0)
 
-	k.attackTxt = text.New(pixel.ZV, FontService.Get("basic"))
-	fmt.Fprint(k.attackTxt, "Attack")
-	k.attackSlider = NewSlider(80, 30, 0, 1, attack)
-	k.attackSlider.OnChange(func(v float32) {
+	k.sliderAttack = newConfSlider("Attack", 80, 30, 0, 1, attack, func(v float32) {
 		k.instr.SetAttack(v)
 	})
-	k.attackValueTxt = text.New(pixel.ZV, FontService.Get("basic"))
+	k.sliderDecay = newConfSlider("Decay", 80, 30, 0, 3, decay, func(v float32) {
+		k.instr.SetDecay(v)
+	})
+	k.sliderSustain = newConfSlider("Sustain", 80, 30, 0, 1, sustain, func(v float32) {
+		k.instr.SetSustain(v)
+	})
+	k.sliderRelease = newConfSlider("Release", 120, 30, 0, 3, release, func(v float32) {
+		k.instr.SetRelease(v)
+	})
 }
 
 func (k *keyboardExample) Mounted() {
 	GetOutput().SetReadable(k.readable)
 	Start()
-	k.attackSlider.Mounted()
 }
 
 func (k *keyboardExample) Unmounted() {
-	k.attackSlider.Unmounted()
 	Stop()
 }
 
@@ -116,10 +156,12 @@ func (k *keyboardExample) Update(win *pixelgl.Window, dt float32, mat pixel.Matr
 		}
 	}
 
-	whiteKey := pixelgl.NewCanvas(pixel.R(0, 0, 50, 200))
-	k.whiteKey.Draw(whiteKey)
-	blackKey := pixelgl.NewCanvas(pixel.R(0, 0, 30, 100))
-	k.blackKey.Draw(blackKey)
+	if k.whiteCanvas == nil {
+		k.whiteCanvas = pixelgl.NewCanvas(pixel.R(0, 0, 50, 200))
+		k.whiteKey.Draw(k.whiteCanvas)
+		k.blackCanvas = pixelgl.NewCanvas(pixel.R(0, 0, 30, 100))
+		k.blackKey.Draw(k.blackCanvas)
+	}
 
 	bounds := win.Bounds()
 	orig := mat.Moved(pixel.V(35, bounds.H()-70))
@@ -135,7 +177,7 @@ func (k *keyboardExample) Update(win *pixelgl.Window, dt float32, mat pixel.Matr
 			} else {
 				maskcolor = colornames.White
 			}
-			whiteKey.DrawColorMask(win, orig.Moved(pixel.V(xWhite, 0)), maskcolor)
+			k.whiteCanvas.DrawColorMask(win, orig.Moved(pixel.V(xWhite, 0)), maskcolor)
 			xWhite += 54
 		}
 	}
@@ -150,15 +192,14 @@ func (k *keyboardExample) Update(win *pixelgl.Window, dt float32, mat pixel.Matr
 			} else {
 				maskcolor = colornames.Black
 			}
-			blackKey.DrawColorMask(win, orig.Moved(pixel.V(xBlack, 25)), maskcolor)
+			k.blackCanvas.DrawColorMask(win, orig.Moved(pixel.V(xBlack, 25)), maskcolor)
 		}
 	}
 	top := win.Bounds().H()
-	k.attackTxt.Draw(win, mat.Moved(pixel.V(20, top-290)))
-	k.attackSlider.Update(win, dt, mat.Moved(pixel.V(100, top-300)))
-	k.attackValueTxt.Clear()
-	fmt.Fprintf(k.attackValueTxt, "%.2f", k.attackSlider.Value())
-	k.attackValueTxt.Draw(win, mat.Moved(pixel.V(200, top-290)))
+	k.sliderAttack.Update(win, dt, mat.Moved(pixel.V(20, top-300)))
+	k.sliderDecay.Update(win, dt, mat.Moved(pixel.V(20, top-350)))
+	k.sliderSustain.Update(win, dt, mat.Moved(pixel.V(20, top-400)))
+	k.sliderRelease.Update(win, dt, mat.Moved(pixel.V(20, top-450)))
 }
 
 func init() {

@@ -38,6 +38,20 @@ func (adsr *Adsr) SetAttack(v float32) {
 	adsr.calcParameters()
 }
 
+func (adsr *Adsr) SetDecay(v float32) {
+	adsr.decay = v
+	adsr.calcParameters()
+}
+
+func (adsr *Adsr) SetSustain(v float32) {
+	adsr.sustain = v
+	adsr.calcParameters()
+}
+
+func (adsr *Adsr) SetRelease(v float32) {
+	adsr.release = v
+}
+
 func (adsr *Adsr) calcParameters() {
 	ft_decay := float32(adsr.samplerate) * adsr.attack
 	adsr.t_decay = uint32(ft_decay)
