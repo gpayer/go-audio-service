@@ -8,6 +8,7 @@ type Rect struct {
 	snd.BasicWritableProvider
 	samplerate uint32
 	freq       float32
+	freqmod    float32
 	fm         *snd.BasicConnector
 	am         *snd.BasicConnector
 }
@@ -37,10 +38,10 @@ func (r *Rect) ReadStateless(samples *snd.Samples, freq float32, state *snd.Note
 		max = uint32(float32(samples.SampleRate) / r.freq)
 	}
 
-	fm := r.fm.ReadBuffered(samples.SampleRate, len(samples.Frames), 0, state)
+	fm := r.fm.ReadBuffered(samples.SampleRate, len(samples.Frames), freq*r.freqmod, state)
 	am := r.am.ReadBuffered(samples.SampleRate, len(samples.Frames), 0, state)
 
-	current := state.Timecode % max
+	current := (state.Timecode + state.Phase) % max
 	for i := 0; i < length; i++ {
 		max += uint32(fm.Frames[i].L)
 		half := max / 2
@@ -61,4 +62,8 @@ func (r *Rect) ReadStateless(samples *snd.Samples, freq float32, state *snd.Note
 			current = 0
 		}
 	}
+}
+
+func (r *Rect) SetFreqMod(v float32) {
+	r.freqmod = v
 }

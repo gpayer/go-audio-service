@@ -40,7 +40,7 @@ func (s *Sin) ReadStateless(samples *snd.Samples, freq float32, state *snd.NoteS
 		}
 		s.dphi = float32(2.0*math.Pi) / (float32(samples.SampleRate) / s.freq)
 	}
-	phi := float32(state.Timecode) * s.dphi
+	phi := float32(state.Timecode+state.Phase) * s.dphi
 
 	fm := s.fm.ReadBuffered(samples.SampleRate, len(samples.Frames), freq*s.FreqModFactor, state)
 	am := s.am.ReadBuffered(samples.SampleRate, len(samples.Frames), 0, state)
@@ -51,4 +51,8 @@ func (s *Sin) ReadStateless(samples *snd.Samples, freq float32, state *snd.NoteS
 		samples.Frames[i].R = v
 		phi += s.dphi
 	}
+}
+
+func (s *Sin) SetFreqMod(v float32) {
+	s.FreqModFactor = v
 }

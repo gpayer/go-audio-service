@@ -14,6 +14,7 @@ type NoteState struct {
 	ReleaseTimecode uint32
 	Volume          float32
 	On              bool
+	Phase           uint32
 }
 
 var EmptyNoteState = &NoteState{
@@ -21,6 +22,7 @@ var EmptyNoteState = &NoteState{
 	ReleaseTimecode: 0,
 	Volume:          0,
 	On:              true,
+	Phase:           0,
 }
 
 type BasicReadable struct{}

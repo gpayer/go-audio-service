@@ -13,6 +13,10 @@ func NewGain(gain float32) *Gain {
 	return &Gain{gain: gain}
 }
 
+func (g *Gain) SetGain(gain float32) {
+	g.gain = gain
+}
+
 func (g *Gain) SetReadable(r snd.Readable) {
 	g.readable = r
 }

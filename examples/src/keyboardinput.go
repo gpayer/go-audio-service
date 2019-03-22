@@ -53,27 +53,31 @@ func (s *confSlider) Update(win *pixelgl.Window, dt float32, mat pixel.Matrix) {
 }
 
 type keyboardExample struct {
-	readable      snd.Readable
-	instr         *DoubleOsci
-	keys          map[pixelgl.Button]*keyDef
-	keyIdx        []pixelgl.Button
-	whiteKey      *imdraw.IMDraw
-	blackKey      *imdraw.IMDraw
-	sliderAttack  *confSlider
-	sliderDecay   *confSlider
-	sliderSustain *confSlider
-	sliderRelease *confSlider
-	whiteCanvas   *pixelgl.Canvas
-	blackCanvas   *pixelgl.Canvas
+	readable        snd.Readable
+	instr           *DoubleOsci
+	keys            map[pixelgl.Button]*keyDef
+	keyIdx          []pixelgl.Button
+	whiteKey        *imdraw.IMDraw
+	blackKey        *imdraw.IMDraw
+	sliderAttack    *confSlider
+	sliderDecay     *confSlider
+	sliderSustain   *confSlider
+	sliderRelease   *confSlider
+	sliderModFactor *confSlider
+	sliderModGain   *confSlider
+	whiteCanvas     *pixelgl.Canvas
+	blackCanvas     *pixelgl.Canvas
 }
 
 func (k *keyboardExample) Init() {
-	var attack, decay, sustain, release float32
+	var attack, decay, sustain, release, modFactor, modGain float32
 	attack = 0.05
 	decay = 0.1
 	sustain = 0.8
 	release = 0.5
-	instr := NewDoubleOsci(attack, decay, sustain, release, 2.3, 0.1)
+	modFactor = 2.3
+	modGain = 0.1
+	instr := NewDoubleOsci(attack, decay, sustain, release, modFactor, modGain)
 
 	gain := filters.NewGain(0.3)
 	gain.SetReadable(instr)
@@ -118,17 +122,23 @@ func (k *keyboardExample) Init() {
 	k.blackKey.Push(pixel.V(0, 0), pixel.V(0, 100), pixel.V(30, 100), pixel.V(30, 0))
 	k.blackKey.Polygon(0)
 
-	k.sliderAttack = newConfSlider("Attack", 80, 30, 0, 1, attack, func(v float32) {
+	k.sliderAttack = newConfSlider("Attack", 120, 30, 0.01, 1, attack, func(v float32) {
 		k.instr.SetAttack(v)
 	})
-	k.sliderDecay = newConfSlider("Decay", 80, 30, 0, 3, decay, func(v float32) {
+	k.sliderDecay = newConfSlider("Decay", 120, 30, 0, 3, decay, func(v float32) {
 		k.instr.SetDecay(v)
 	})
-	k.sliderSustain = newConfSlider("Sustain", 80, 30, 0, 1, sustain, func(v float32) {
+	k.sliderSustain = newConfSlider("Sustain", 120, 30, 0, 1, sustain, func(v float32) {
 		k.instr.SetSustain(v)
 	})
-	k.sliderRelease = newConfSlider("Release", 120, 30, 0, 3, release, func(v float32) {
+	k.sliderRelease = newConfSlider("Release", 120, 30, 0.01, 3, release, func(v float32) {
 		k.instr.SetRelease(v)
+	})
+	k.sliderModFactor = newConfSlider("ModFactor", 120, 30, 0, 15, modFactor, func(v float32) {
+		k.instr.SetModFactor(v)
+	})
+	k.sliderModGain = newConfSlider("ModGain", 120, 30, 0, 20, modGain, func(v float32) {
+		k.instr.SetModGain(v)
 	})
 }
 
@@ -196,10 +206,12 @@ func (k *keyboardExample) Update(win *pixelgl.Window, dt float32, mat pixel.Matr
 		}
 	}
 	top := win.Bounds().H()
-	k.sliderAttack.Update(win, dt, mat.Moved(pixel.V(20, top-300)))
-	k.sliderDecay.Update(win, dt, mat.Moved(pixel.V(20, top-350)))
-	k.sliderSustain.Update(win, dt, mat.Moved(pixel.V(20, top-400)))
-	k.sliderRelease.Update(win, dt, mat.Moved(pixel.V(20, top-450)))
+	k.sliderAttack.Update(win, dt, mat.Moved(pixel.V(20, top-280)))
+	k.sliderDecay.Update(win, dt, mat.Moved(pixel.V(20, top-320)))
+	k.sliderSustain.Update(win, dt, mat.Moved(pixel.V(20, top-360)))
+	k.sliderRelease.Update(win, dt, mat.Moved(pixel.V(20, top-400)))
+	k.sliderModFactor.Update(win, dt, mat.Moved(pixel.V(20, top-440)))
+	k.sliderModGain.Update(win, dt, mat.Moved(pixel.V(20, top-480)))
 }
 
 func init() {

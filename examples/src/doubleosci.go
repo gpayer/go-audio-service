@@ -7,10 +7,18 @@ import (
 	"go-audio-service/snd"
 )
 
+type OsciType int
+
+const (
+	OsciSin OsciType = iota
+	OsciRect
+)
+
 type DoubleOsci struct {
 	multi      *notes.NoteMultiplexer
 	modgain    *filters.Gain
 	adsr       *notes.Adsr
+	mod1       generators.FreqModable
 	osci       generators.Generator
 	oscimod    generators.Generator
 	a, d, s, r float32
@@ -26,6 +34,7 @@ func NewDoubleOsci(a, d, s, r, modfactor, modgain float32) *DoubleOsci {
 	sin1 := generators.NewSin(440)
 	sin1.FreqModFactor = 1.5
 	o.osci = sin1
+	o.mod1 = sin1
 	fm, _ := sin1.GetInput("fm")
 	fmmod := generators.NewSin(880)
 	o.oscimod = fmmod
@@ -65,4 +74,12 @@ func (o *DoubleOsci) SetSustain(v float32) {
 
 func (o *DoubleOsci) SetRelease(v float32) {
 	o.adsr.SetRelease(v)
+}
+
+func (o *DoubleOsci) SetModFactor(v float32) {
+	o.mod1.SetFreqMod(v)
+}
+
+func (o *DoubleOsci) SetModGain(v float32) {
+	o.modgain.SetGain(v)
 }
