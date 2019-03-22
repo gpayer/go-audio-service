@@ -60,3 +60,8 @@ func Note(name string, octave int) NoteValue {
 type NoteAware interface {
 	NoteEnded() bool
 }
+
+func MidiToNote(notenum int64) NoteValue {
+	steps := notenum - 69 // A4 is note number 69
+	return BaseA4 * NoteValue(math.Pow(twelthrootof2, float64(steps)))
+}

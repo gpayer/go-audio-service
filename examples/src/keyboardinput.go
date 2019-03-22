@@ -72,6 +72,10 @@ type keyboardExample struct {
 	sliderModGain   *confSlider
 	whiteCanvas     *pixelgl.Canvas
 	blackCanvas     *pixelgl.Canvas
+	txtOsci1        *text.Text
+	toggleOsci1     *ValueToggle
+	txtOsci2        *text.Text
+	toggleOsci2     *ValueToggle
 	portIn          *portmidi.Stream
 }
 
@@ -83,7 +87,7 @@ func (k *keyboardExample) Init() {
 	release = 0.5
 	modFactor = 2.3
 	modGain = 0.1
-	instr := NewDoubleOsci(attack, decay, sustain, release, modFactor, modGain)
+	instr := NewDoubleOsci(attack, decay, sustain, release, modFactor, modGain, OsciSin, OsciSin)
 
 	gain := filters.NewGain(0.3)
 	gain.SetReadable(instr)
@@ -146,6 +150,19 @@ func (k *keyboardExample) Init() {
 	k.sliderModGain = newConfSlider("ModGain", 120, 30, 0, 20, modGain, func(v float32) {
 		k.instr.SetModGain(v)
 	})
+
+	k.txtOsci1 = text.New(pixel.ZV, FontService.Get("basic"))
+	fmt.Fprintf(k.txtOsci1, "OSCI1")
+	k.toggleOsci1 = NewValueToggle(80, 15, func(val int) {
+		k.instr.SetOsciType(1, OsciType(val))
+	})
+	k.toggleOsci1.AddValue("sin", int(OsciSin))
+	k.toggleOsci1.AddValue("rect", int(OsciRect))
+	k.txtOsci2 = text.New(pixel.ZV, FontService.Get("basic"))
+	fmt.Fprintf(k.txtOsci2, "OSCI2")
+	k.toggleOsci2 = NewValueToggle(80, 15, func(val int) {})
+	k.toggleOsci2.AddValue("sin", int(OsciSin))
+	k.toggleOsci2.AddValue("rect", int(OsciRect))
 }
 
 func (k *keyboardExample) Mounted() {
@@ -187,8 +204,11 @@ func (k *keyboardExample) Update(win *pixelgl.Window, dt float32, mat pixel.Matr
 		midiEvents, err := k.portIn.Read(128)
 		if err == nil {
 			for _, ev := range midiEvents {
-				// TODO: note events
-				fmt.Printf("0x%x %d %d\n", ev.Status, ev.Data1, ev.Data2)
+				if ev.Status == 0x90 {
+					k.instr.SendNoteEvent(notes.NewNoteEvent(notes.Pressed, notes.MidiToNote(ev.Data1), float32(ev.Data2)/127.0))
+				} else if ev.Status == 0x80 {
+					k.instr.SendNoteEvent(notes.NewNoteEvent(notes.Released, notes.MidiToNote(ev.Data1), 0.0))
+				}
 			}
 		}
 	}
@@ -238,6 +258,11 @@ func (k *keyboardExample) Update(win *pixelgl.Window, dt float32, mat pixel.Matr
 	k.sliderRelease.Update(win, dt, mat.Moved(pixel.V(20, top-400)))
 	k.sliderModFactor.Update(win, dt, mat.Moved(pixel.V(20, top-440)))
 	k.sliderModGain.Update(win, dt, mat.Moved(pixel.V(20, top-480)))
+
+	k.txtOsci1.Draw(win, mat.Moved(pixel.V(400, top-260)))
+	k.toggleOsci1.Update(win, dt, mat.Moved(pixel.V(450, top-260)))
+	k.txtOsci2.Draw(win, mat.Moved(pixel.V(400, top-280)))
+	k.toggleOsci2.Update(win, dt, mat.Moved(pixel.V(450, top-280)))
 }
 
 func init() {

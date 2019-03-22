@@ -15,27 +15,32 @@ const (
 )
 
 type DoubleOsci struct {
-	multi      *notes.NoteMultiplexer
-	modgain    *filters.Gain
-	adsr       *notes.Adsr
-	mod1       generators.FreqModable
-	osci       generators.Generator
-	oscimod    generators.Generator
-	a, d, s, r float32
-	modfactor  float32
-	gainvalue  float32
+	multi                *notes.NoteMultiplexer
+	modgain              *filters.Gain
+	adsr                 *notes.Adsr
+	mod1                 generators.FreqModable
+	osci                 generators.Generator
+	oscimod              generators.Generator
+	a, d, s, r           float32
+	modfactor            float32
+	gainvalue            float32
+	osci1type, osci2type OsciType
 }
 
-func NewDoubleOsci(a, d, s, r, modfactor, modgain float32) *DoubleOsci {
+func NewDoubleOsci(a, d, s, r, modfactor, modgain float32, osci1type, osci2type OsciType) *DoubleOsci {
 	o := &DoubleOsci{
 		a: a, d: d, s: s, r: r, modfactor: modfactor, gainvalue: modgain,
+		osci1type: osci1type, osci2type: osci2type,
 	}
 
-	sin1 := generators.NewSin(440)
-	sin1.FreqModFactor = modfactor
-	o.osci = sin1
-	o.mod1 = sin1
-	fm, _ := sin1.GetInput("fm")
+	if osci1type == OsciSin {
+		o.osci = generators.NewSin(440)
+	} else {
+		o.osci = generators.NewRect(44000, 440)
+	}
+	o.mod1 = o.osci.(generators.FreqModable)
+	o.mod1.SetFreqMod(modfactor)
+	fm, _ := o.osci.GetInput("fm")
 	fmmod := generators.NewSin(880)
 	o.oscimod = fmmod
 	o.modgain = filters.NewGain(modgain)
@@ -82,4 +87,18 @@ func (o *DoubleOsci) SetModFactor(v float32) {
 
 func (o *DoubleOsci) SetModGain(v float32) {
 	o.modgain.SetGain(v)
+}
+
+func (o *DoubleOsci) SetOsciType(nr int, typ OsciType) {
+	if nr == 1 && o.osci1type != typ {
+		if typ == OsciSin {
+			o.osci = generators.NewSin(440)
+		} else {
+			o.osci = generators.NewRect(44000, 440)
+		}
+		o.mod1 = o.osci.(generators.FreqModable)
+		fm, _ := o.osci.GetInput("fm")
+		fm.SetReadable(o.modgain)
+		o.adsr.SetReadable(o.osci)
+	}
 }
