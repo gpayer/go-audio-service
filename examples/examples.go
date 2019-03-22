@@ -10,6 +10,8 @@ import (
 	"runtime/pprof"
 	"time"
 
+	"github.com/rakyll/portmidi"
+
 	"github.com/faiface/pixel"
 	"github.com/faiface/pixel/pixelgl"
 	"github.com/faiface/pixel/text"
@@ -67,6 +69,12 @@ func run() {
 	if err != nil {
 		panic(err)
 	}
+
+	err = portmidi.Initialize()
+	if err != nil {
+		panic(err)
+	}
+	defer func() { _ = portmidi.Terminate() }()
 
 	mainscene := &mainScene{}
 	mainscene.Init()

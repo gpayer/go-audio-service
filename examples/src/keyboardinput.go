@@ -1,11 +1,14 @@
 package examples
 
 import (
+	"flag"
 	"fmt"
 	"go-audio-service/filters"
 	"go-audio-service/notes"
 	"go-audio-service/snd"
 	"image/color"
+
+	"github.com/rakyll/portmidi"
 
 	"github.com/faiface/pixel/text"
 
@@ -15,6 +18,8 @@ import (
 	"github.com/faiface/pixel/imdraw"
 	"github.com/faiface/pixel/pixelgl"
 )
+
+var midiDeviceID = flag.Int("devid", 0, "midi device ID")
 
 type keyDef struct {
 	note    notes.NoteValue
@@ -67,6 +72,7 @@ type keyboardExample struct {
 	sliderModGain   *confSlider
 	whiteCanvas     *pixelgl.Canvas
 	blackCanvas     *pixelgl.Canvas
+	portIn          *portmidi.Stream
 }
 
 func (k *keyboardExample) Init() {
@@ -143,11 +149,22 @@ func (k *keyboardExample) Init() {
 }
 
 func (k *keyboardExample) Mounted() {
+	if *midiDeviceID > 0 {
+		portIn, err := portmidi.NewInputStream(portmidi.DeviceID(*midiDeviceID), 256)
+		if err != nil {
+			panic(err)
+		}
+		k.portIn = portIn
+	}
 	GetOutput().SetReadable(k.readable)
 	Start()
 }
 
 func (k *keyboardExample) Unmounted() {
+	if *midiDeviceID > 0 && k.portIn != nil {
+		k.portIn.Close()
+		k.portIn = nil
+	}
 	Stop()
 }
 
@@ -166,6 +183,15 @@ func (k *keyboardExample) Update(win *pixelgl.Window, dt float32, mat pixel.Matr
 		}
 	}
 
+	if *midiDeviceID > 0 && k.portIn != nil {
+		midiEvents, err := k.portIn.Read(128)
+		if err == nil {
+			for _, ev := range midiEvents {
+				// TODO: note events
+				fmt.Printf("0x%x %d %d\n", ev.Status, ev.Data1, ev.Data2)
+			}
+		}
+	}
 	if k.whiteCanvas == nil {
 		k.whiteCanvas = pixelgl.NewCanvas(pixel.R(0, 0, 50, 200))
 		k.whiteKey.Draw(k.whiteCanvas)
