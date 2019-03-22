@@ -32,7 +32,7 @@ func NewDoubleOsci(a, d, s, r, modfactor, modgain float32) *DoubleOsci {
 	}
 
 	sin1 := generators.NewSin(440)
-	sin1.FreqModFactor = 1.5
+	sin1.FreqModFactor = modfactor
 	o.osci = sin1
 	o.mod1 = sin1
 	fm, _ := sin1.GetInput("fm")
