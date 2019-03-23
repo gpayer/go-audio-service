@@ -82,10 +82,12 @@ func (o *DoubleOsci) SetRelease(v float32) {
 }
 
 func (o *DoubleOsci) SetModFactor(v float32) {
+	o.modfactor = v
 	o.mod1.SetFreqMod(v)
 }
 
 func (o *DoubleOsci) SetModGain(v float32) {
+	o.gainvalue = v
 	o.modgain.SetGain(v)
 }
 
@@ -96,9 +98,19 @@ func (o *DoubleOsci) SetOsciType(nr int, typ OsciType) {
 		} else {
 			o.osci = generators.NewRect(44000, 440)
 		}
+		o.osci1type = typ
 		o.mod1 = o.osci.(generators.FreqModable)
+		o.mod1.SetFreqMod(o.modfactor)
 		fm, _ := o.osci.GetInput("fm")
 		fm.SetReadable(o.modgain)
 		o.adsr.SetReadable(o.osci)
+	} else if nr == 2 && o.osci2type != typ {
+		if typ == OsciSin {
+			o.oscimod = generators.NewSin(440)
+		} else {
+			o.oscimod = generators.NewRect(44000, 440)
+		}
+		o.osci2type = typ
+		o.modgain.SetReadable(o.oscimod)
 	}
 }

@@ -160,7 +160,9 @@ func (k *keyboardExample) Init() {
 	k.toggleOsci1.AddValue("rect", int(OsciRect))
 	k.txtOsci2 = text.New(pixel.ZV, FontService.Get("basic"))
 	fmt.Fprintf(k.txtOsci2, "OSCI2")
-	k.toggleOsci2 = NewValueToggle(80, 15, func(val int) {})
+	k.toggleOsci2 = NewValueToggle(80, 15, func(val int) {
+		k.instr.SetOsciType(2, OsciType(val))
+	})
 	k.toggleOsci2.AddValue("sin", int(OsciSin))
 	k.toggleOsci2.AddValue("rect", int(OsciRect))
 }
