@@ -2,37 +2,36 @@ package main
 
 import (
 	"flag"
-	"fmt"
 	examples "go-audio-service/examples/src"
 	"log"
 	"os"
+	"pixelext/nodes"
 	"runtime"
 	"runtime/pprof"
-	"time"
 
 	"github.com/rakyll/portmidi"
 
 	"github.com/faiface/pixel"
 	"github.com/faiface/pixel/pixelgl"
-	"github.com/faiface/pixel/text"
 	"golang.org/x/image/colornames"
-	"golang.org/x/image/font/basicfont"
 )
 
 type mainScene struct {
-	basicAtlas     *text.Atlas
-	exampleListTxt *text.Text
+	nodes.BaseNode
+	exampleListTxt *nodes.Text
 	numkeys        map[int]pixelgl.Button
 }
 
 func (m *mainScene) Init() {
 	list := examples.GetExamples()
-	m.basicAtlas = text.NewAtlas(basicfont.Face7x13, text.ASCII)
-	m.exampleListTxt = text.New(pixel.ZV, m.basicAtlas)
-	fmt.Fprintln(m.exampleListTxt, "press [ESC] to exit")
+	m.exampleListTxt = nodes.NewText("examplelist", "basic")
+	m.exampleListTxt.Printf("press [ESC] to exit\n")
 	for _, e := range list {
-		fmt.Fprintf(m.exampleListTxt, "%d: %s\n", e.Id, e.Name)
+		m.exampleListTxt.Printf("%d: %s\n", e.Id, e.Name)
 	}
+	m.exampleListTxt.SetPos(pixel.V(20, 600))
+	m.exampleListTxt.SetZeroAlignment(nodes.AlignmentTopLeft)
+	m.AddChild(m.exampleListTxt)
 
 	m.numkeys = make(map[int]pixelgl.Button, 10)
 	for i := 0; i <= 9; i++ {
@@ -46,11 +45,9 @@ func (m *mainScene) Mounted() {
 func (m *mainScene) Unmounted() {
 }
 
-func (m *mainScene) Update(win *pixelgl.Window, dt float32, mat pixel.Matrix) {
-	m.exampleListTxt.Draw(win, pixel.IM.Moved(pixel.V(20, win.Bounds().H()-20.0)))
-
+func (m *mainScene) Update(dt float64) {
 	for id, nk := range m.numkeys {
-		if win.JustPressed(nk) {
+		if nodes.Events().JustPressed(nk) {
 			examples.RunExample(id)
 			break
 		}
@@ -76,22 +73,22 @@ func run() {
 	}
 	defer func() { _ = portmidi.Terminate() }()
 
-	mainscene := &mainScene{}
-	mainscene.Init()
-	examples.AddScene("main", mainscene)
-	examples.SetRoot(mainscene)
+	nodes.Events().SetWin(win)
 
-	last := time.Now()
+	mainscene := &mainScene{
+		BaseNode: *nodes.NewBaseNode("main"),
+	}
+	mainscene.Self = mainscene
+	examples.AddScene("main", mainscene)
+	nodes.SceneManager().SetRoot(mainscene)
 
 	for !win.Closed() {
-		dt := float32(time.Since(last).Seconds())
-		last = time.Now()
 		if win.JustPressed(pixelgl.KeyEscape) {
 			break
 		}
 
 		win.Clear(colornames.Black)
-		examples.GetRoot().Update(win, dt, pixel.IM)
+		nodes.SceneManager().Run(pixel.IM)
 		win.Update()
 	}
 

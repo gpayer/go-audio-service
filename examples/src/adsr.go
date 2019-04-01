@@ -1,16 +1,13 @@
 package examples
 
 import (
-	"fmt"
 	"go-audio-service/generators"
 	"go-audio-service/mix"
 	"go-audio-service/notes"
 	"go-audio-service/snd"
+	"pixelext/nodes"
 
 	"github.com/faiface/pixel"
-	"github.com/faiface/pixel/text"
-
-	"github.com/faiface/pixel/pixelgl"
 )
 
 type noteShort struct {
@@ -23,12 +20,13 @@ type noteShort struct {
 }
 
 type adsrExample struct {
+	nodes.BaseNode
 	totaltime float32
 	outrotime float32
 	piece     []noteShort
 	readable  snd.Readable
 	instr     []*notes.NoteMultiplexer
-	logtxt    *text.Text
+	logtxt    *nodes.Text
 }
 
 func (a *adsrExample) initPiece() {
@@ -73,12 +71,15 @@ func (a *adsrExample) Init() {
 
 	a.readable = mixer
 	a.instr = instr
+
+	a.logtxt = nodes.NewText("", "basic")
+	a.logtxt.Printf("ADSR Example")
+	a.logtxt.SetPos(pixel.V(20, 580))
+	a.logtxt.SetZeroAlignment(nodes.AlignmentTopLeft)
+	a.AddChild(a.logtxt)
 }
 
 func (a *adsrExample) Mounted() {
-	a.logtxt = text.New(pixel.ZV, FontService.Get("basic"))
-	fmt.Fprintln(a.logtxt, "ADSR Example")
-
 	a.totaltime = 0
 	a.outrotime = 0
 	a.initPiece()
@@ -109,14 +110,14 @@ func createInstrument(instrtype int, a, d, s, r float32) *notes.NoteMultiplexer 
 	return multi1
 }
 
-func (a *adsrExample) Update(win *pixelgl.Window, dt float32, mat pixel.Matrix) {
+func (a *adsrExample) Update(dt float32) {
 	a.totaltime += dt
 	if len(a.piece) > 0 {
 		n := a.piece[0]
 		if a.totaltime >= n.wait {
 			a.piece = a.piece[1:]
 			a.instr[n.ch].SendNoteEvent(notes.NewNoteEvent(n.evtype, notes.Note(n.notename, n.octave), n.volume))
-			fmt.Fprintf(a.logtxt, "%d: %d %s %d\n", n.ch, n.evtype, n.notename, n.octave)
+			a.logtxt.Printf("%d: %d %s %d\n", n.ch, n.evtype, n.notename, n.octave)
 		}
 	} else {
 		a.outrotime += dt
@@ -124,9 +125,12 @@ func (a *adsrExample) Update(win *pixelgl.Window, dt float32, mat pixel.Matrix) 
 			SwitchScene("main")
 		}
 	}
-	a.logtxt.Draw(win, pixel.IM.Moved(pixel.V(20, win.Bounds().H()-20.0)))
 }
 
 func init() {
-	AddExample("Adsr", &adsrExample{})
+	e := &adsrExample{
+		BaseNode: *nodes.NewBaseNode("asdr"),
+	}
+	e.Self = e
+	AddExample("Adsr", e)
 }

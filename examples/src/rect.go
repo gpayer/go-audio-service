@@ -1,6 +1,7 @@
 package examples
 
 import (
+	"pixelext/nodes"
 	"github.com/faiface/pixel"
 	"go-audio-service/filters"
 	"go-audio-service/generators"
@@ -11,6 +12,7 @@ import (
 )
 
 type rectExample struct {
+	nodes.BaseNode
 	totalTime float32
 	gain      snd.Readable
 }

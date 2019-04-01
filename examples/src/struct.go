@@ -2,25 +2,25 @@ package examples
 
 import (
 	"go-audio-service/snd"
+	"pixelext/nodes"
 )
 
 type Example struct {
 	Id    int
 	Name  string
-	Scene INode
+	Scene nodes.Node
 }
 
 var exampleList []*Example
 var counter int = 1
 var output snd.IOutput
 
-func AddExample(name string, scene INode) {
+func AddExample(name string, scene nodes.Node) {
 	exampleList = append(exampleList, &Example{
 		Id:    counter,
 		Name:  name,
 		Scene: scene,
 	})
-	scene.Init()
 	counter++
 }
 
@@ -35,7 +35,7 @@ func GetOutput() snd.IOutput {
 func RunExample(id int) {
 	for _, example := range exampleList {
 		if example.Id == id {
-			SetRoot(example.Scene)
+			nodes.SceneManager().SetRoot(example.Scene)
 		}
 	}
 }

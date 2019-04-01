@@ -1,6 +1,7 @@
 package examples
 
 import (
+	"pixelext/nodes"
 	"github.com/faiface/pixel"
 	"go-audio-service/filters"
 	"go-audio-service/generators"
@@ -10,6 +11,7 @@ import (
 )
 
 type compressorExample struct {
+	nodes.BaseNode
 	totaltime float32
 	comp      *filters.Compressor
 	compstate *filters.CompressorState

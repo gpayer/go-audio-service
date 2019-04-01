@@ -5,6 +5,7 @@ import (
 	"go-audio-service/generators"
 	"go-audio-service/notes"
 	"go-audio-service/snd"
+	"pixelext/nodes"
 
 	"github.com/faiface/pixel"
 
@@ -12,6 +13,7 @@ import (
 )
 
 type sinExample struct {
+	nodes.BaseNode
 	totalTime float32
 	gain      snd.Readable
 }

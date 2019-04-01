@@ -1,6 +1,7 @@
 package examples
 
 import (
+	"pixelext/nodes"
 	"github.com/faiface/pixel"
 	"fmt"
 	"go-audio-service/filters"
@@ -11,6 +12,7 @@ import (
 )
 
 type lowpassExample struct {
+	nodes.BaseNode
 	totaltime   float32
 	readable    snd.Readable
 	cutoff      float32

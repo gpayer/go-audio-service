@@ -7,6 +7,8 @@ import (
 	"go-audio-service/notes"
 	"go-audio-service/snd"
 	"image/color"
+	"pixelext/nodes"
+	"pixelext/ui"
 
 	"github.com/rakyll/portmidi"
 
@@ -28,36 +30,52 @@ type keyDef struct {
 }
 
 type confSlider struct {
+	nodes.BaseNode
+	hbox     *ui.HBox
 	w        float64
-	txt      *text.Text
-	slider   *Slider
-	valueTxt *text.Text
+	txt      *nodes.Text
+	slider   *ui.Slider
+	valueTxt *nodes.Text
 	onchange func(v float32)
 }
 
 func newConfSlider(desc string, w, h float64, min, max, v float32, onchange func(v float32)) *confSlider {
-	s := &confSlider{w: w, onchange: onchange}
-	s.txt = text.New(pixel.ZV, FontService.Get("basic"))
-	fmt.Fprint(s.txt, desc)
-	s.slider = NewSlider(w, h, min, max, v)
+	s := &confSlider{
+		BaseNode: *nodes.NewBaseNode(""),
+		w:        w,
+		onchange: onchange,
+	}
+	s.Self = s
+	s.hbox = ui.NewHBox("hbox")
+	s.AddChild(s.hbox)
+
+	s.txt = nodes.NewText("txt", "basic")
+	s.txt.Printf(desc)
+	s.hbox.AddChild(s.txt)
+
+	sliderval := nodes.NewBaseNode("")
+	s.slider = ui.NewSlider("slider", min, max, v)
+	s.slider.SetBounds(pixel.R(0, 0, w, h))
 	s.slider.OnChange(func(v float32) {
 		s.onchange(v)
 		s.valueTxt.Clear()
-		fmt.Fprintf(s.valueTxt, "%.2f", s.slider.Value())
+		s.valueTxt.Printf("%.2f", s.slider.Value())
 	})
-	s.valueTxt = text.New(pixel.ZV, FontService.Get("basic"))
-	s.valueTxt.Clear()
-	fmt.Fprintf(s.valueTxt, "%.2f", s.slider.Value())
+	sliderval.AddChild(s.slider)
+
+	s.valueTxt = nodes.NewText("valuetxt", "basic")
+	s.valueTxt.SetZIndex(10)
+	s.valueTxt.SetZeroAlignment(nodes.AlignmentCenter)
+	s.valueTxt.SetPos(pixel.V(w/2, h/2))
+	s.valueTxt.Printf("%.2f", v)
+	sliderval.AddChild(s.valueTxt)
+	s.hbox.AddChild(sliderval)
+
 	return s
 }
 
-func (s *confSlider) Update(win *pixelgl.Window, dt float32, mat pixel.Matrix) {
-	s.slider.Update(win, dt, mat.Moved(pixel.V(80, 0)))
-	s.txt.Draw(win, mat.Moved(pixel.V(0, 10)))
-	s.valueTxt.Draw(win, mat.Moved(pixel.V(120+s.w, 10)))
-}
-
 type keyboardExample struct {
+	nodes.BaseNode
 	readable        snd.Readable
 	instr           *DoubleOsci
 	keys            map[pixelgl.Button]*keyDef
@@ -135,21 +153,38 @@ func (k *keyboardExample) Init() {
 	k.sliderAttack = newConfSlider("Attack", 120, 30, 0.01, 1, attack, func(v float32) {
 		k.instr.SetAttack(v)
 	})
+	k.sliderAttack.SetPos(pixel.V(20, 320))
+	k.AddChild(k.sliderAttack)
+
 	k.sliderDecay = newConfSlider("Decay", 120, 30, 0, 3, decay, func(v float32) {
 		k.instr.SetDecay(v)
 	})
+	k.sliderDecay.SetPos(pixel.V(20, 280))
+	k.AddChild(k.sliderDecay)
+
 	k.sliderSustain = newConfSlider("Sustain", 120, 30, 0, 1, sustain, func(v float32) {
 		k.instr.SetSustain(v)
 	})
+	k.sliderSustain.SetPos(pixel.V(20, 240))
+	k.AddChild(k.sliderSustain)
+
 	k.sliderRelease = newConfSlider("Release", 120, 30, 0.01, 3, release, func(v float32) {
 		k.instr.SetRelease(v)
 	})
+	k.sliderRelease.SetPos(pixel.V(20, 200))
+	k.AddChild(k.sliderRelease)
+
 	k.sliderModFactor = newConfSlider("ModFactor", 120, 30, 0, 15, modFactor, func(v float32) {
 		k.instr.SetModFactor(v)
 	})
+	k.sliderModFactor.SetPos(pixel.V(20, 160))
+	k.AddChild(k.sliderModFactor)
+
 	k.sliderModGain = newConfSlider("ModGain", 120, 30, 0, 20, modGain, func(v float32) {
 		k.instr.SetModGain(v)
 	})
+	k.sliderModGain.SetPos(pixel.V(20, 120))
+	k.AddChild(k.sliderModGain)
 
 	k.txtOsci1 = text.New(pixel.ZV, FontService.Get("basic"))
 	fmt.Fprintf(k.txtOsci1, "OSCI1")
@@ -167,7 +202,7 @@ func (k *keyboardExample) Init() {
 	k.toggleOsci2.AddValue("rect", int(OsciRect))
 }
 
-func (k *keyboardExample) Mounted() {
+func (k *keyboardExample) Mount() {
 	if *midiDeviceID > 0 {
 		portIn, err := portmidi.NewInputStream(portmidi.DeviceID(*midiDeviceID), 256)
 		if err != nil {
@@ -179,7 +214,7 @@ func (k *keyboardExample) Mounted() {
 	Start()
 }
 
-func (k *keyboardExample) Unmounted() {
+func (k *keyboardExample) Unmount() {
 	if *midiDeviceID > 0 && k.portIn != nil {
 		k.portIn.Close()
 		k.portIn = nil
@@ -187,15 +222,16 @@ func (k *keyboardExample) Unmounted() {
 	Stop()
 }
 
-func (k *keyboardExample) Update(win *pixelgl.Window, dt float32, mat pixel.Matrix) {
-	if win.JustPressed(pixelgl.KeyQ) {
+func (k *keyboardExample) Update(dt float64) {
+	ev := nodes.Events()
+	if ev.JustPressed(pixelgl.KeyQ) {
 		SwitchScene("main")
 	} else {
 		for key, def := range k.keys {
-			if win.Pressed(key) && !k.keys[key].pressed {
+			if ev.Pressed(key) && !k.keys[key].pressed {
 				k.instr.SendNoteEvent(notes.NewNoteEvent(notes.Pressed, def.note, 0.6))
 				k.keys[key].pressed = true
-			} else if !win.Pressed(key) && k.keys[key].pressed {
+			} else if !ev.Pressed(key) && k.keys[key].pressed {
 				k.instr.SendNoteEvent(notes.NewNoteEvent(notes.Released, def.note, 0.0))
 				k.keys[key].pressed = false
 			}
@@ -214,6 +250,9 @@ func (k *keyboardExample) Update(win *pixelgl.Window, dt float32, mat pixel.Matr
 			}
 		}
 	}
+}
+
+func (k *keyboardExample) Draw(win *pixelgl.Window, mat pixel.Matrix) {
 	if k.whiteCanvas == nil {
 		k.whiteCanvas = pixelgl.NewCanvas(pixel.R(0, 0, 50, 200))
 		k.whiteKey.Draw(k.whiteCanvas)
@@ -221,8 +260,8 @@ func (k *keyboardExample) Update(win *pixelgl.Window, dt float32, mat pixel.Matr
 		k.blackKey.Draw(k.blackCanvas)
 	}
 
-	bounds := win.Bounds()
-	orig := mat.Moved(pixel.V(35, bounds.H()-70))
+	//bounds := win.Bounds()
+	orig := mat.Moved(pixel.V(35, 530))
 
 	xWhite := 0.0
 	xBlack := 27.0 - 54.0
@@ -253,8 +292,7 @@ func (k *keyboardExample) Update(win *pixelgl.Window, dt float32, mat pixel.Matr
 			k.blackCanvas.DrawColorMask(win, orig.Moved(pixel.V(xBlack, 25)), maskcolor)
 		}
 	}
-	top := win.Bounds().H()
-	k.sliderAttack.Update(win, dt, mat.Moved(pixel.V(20, top-280)))
+	/*k.sliderAttack.Update(win, dt, mat.Moved(pixel.V(20, top-280)))
 	k.sliderDecay.Update(win, dt, mat.Moved(pixel.V(20, top-320)))
 	k.sliderSustain.Update(win, dt, mat.Moved(pixel.V(20, top-360)))
 	k.sliderRelease.Update(win, dt, mat.Moved(pixel.V(20, top-400)))
@@ -264,9 +302,13 @@ func (k *keyboardExample) Update(win *pixelgl.Window, dt float32, mat pixel.Matr
 	k.txtOsci1.Draw(win, mat.Moved(pixel.V(400, top-260)))
 	k.toggleOsci1.Update(win, dt, mat.Moved(pixel.V(450, top-260)))
 	k.txtOsci2.Draw(win, mat.Moved(pixel.V(400, top-280)))
-	k.toggleOsci2.Update(win, dt, mat.Moved(pixel.V(450, top-280)))
+	k.toggleOsci2.Update(win, dt, mat.Moved(pixel.V(450, top-280)))*/
 }
 
 func init() {
-	AddExample("Keyboard", &keyboardExample{})
+	k := &keyboardExample{
+		BaseNode: *nodes.NewBaseNode("keyboard"),
+	}
+	k.Self = k
+	AddExample("Keyboard", k)
 }

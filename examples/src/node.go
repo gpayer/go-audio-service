@@ -1,37 +1,16 @@
 package examples
 
 import (
-	"github.com/faiface/pixel"
-	"github.com/faiface/pixel/pixelgl"
+	"pixelext/nodes"
 )
 
-type INode interface {
-	Init()
-	Mounted()
-	Unmounted()
-	Update(win *pixelgl.Window, dt float32, mat pixel.Matrix)
-}
+var sceneList map[string]nodes.Node
 
-var sceneList map[string]INode
-var currentRoot INode
-
-func GetRoot() INode {
-	return currentRoot
-}
-
-func SetRoot(n INode) {
-	if currentRoot != nil {
-		currentRoot.Unmounted()
-	}
-	currentRoot = n
-	currentRoot.Mounted()
-}
-
-func AddScene(name string, n INode) {
+func AddScene(name string, n nodes.Node) {
 	sceneList[name] = n
 }
 
-func GetScene(name string) (INode, bool) {
+func GetScene(name string) (nodes.Node, bool) {
 	s, ok := sceneList[name]
 	return s, ok
 }
@@ -41,9 +20,9 @@ func SwitchScene(name string) {
 	if !ok {
 		return
 	}
-	SetRoot(s)
+	nodes.SceneManager().SetRoot(s)
 }
 
 func init() {
-	sceneList = make(map[string]INode)
+	sceneList = make(map[string]nodes.Node)
 }
