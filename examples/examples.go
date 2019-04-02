@@ -29,7 +29,7 @@ func (m *mainScene) Init() {
 	for _, e := range list {
 		m.exampleListTxt.Printf("%d: %s\n", e.Id, e.Name)
 	}
-	m.exampleListTxt.SetPos(pixel.V(20, 600))
+	m.exampleListTxt.SetPos(pixel.V(20, 580))
 	m.exampleListTxt.SetZeroAlignment(nodes.AlignmentTopLeft)
 	m.AddChild(m.exampleListTxt)
 
