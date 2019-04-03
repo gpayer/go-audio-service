@@ -11,7 +11,7 @@ import (
 )
 
 type noteShort struct {
-	wait     float32
+	wait     float64
 	ch       int
 	evtype   int
 	notename string
@@ -21,8 +21,8 @@ type noteShort struct {
 
 type adsrExample struct {
 	nodes.BaseNode
-	totaltime float32
-	outrotime float32
+	totaltime float64
+	outrotime float64
 	piece     []noteShort
 	readable  snd.Readable
 	instr     []*notes.NoteMultiplexer
@@ -44,7 +44,7 @@ func (a *adsrExample) initPiece() {
 		{100, 1, notes.Pressed, "C", 4, 0.5},
 		{100, 1, notes.Released, "C", 4, 0.0},
 	}
-	eventtime := float32(0)
+	eventtime := 0.0
 
 	for _, note := range piece {
 		note.wait /= 1000.0
@@ -73,13 +73,13 @@ func (a *adsrExample) Init() {
 	a.instr = instr
 
 	a.logtxt = nodes.NewText("", "basic")
-	a.logtxt.Printf("ADSR Example")
+	a.logtxt.Printf("ADSR Example\n")
 	a.logtxt.SetPos(pixel.V(20, 580))
 	a.logtxt.SetZeroAlignment(nodes.AlignmentTopLeft)
 	a.AddChild(a.logtxt)
 }
 
-func (a *adsrExample) Mounted() {
+func (a *adsrExample) Mount() {
 	a.totaltime = 0
 	a.outrotime = 0
 	a.initPiece()
@@ -87,7 +87,7 @@ func (a *adsrExample) Mounted() {
 	Start()
 }
 
-func (a *adsrExample) Unmounted() {
+func (a *adsrExample) Unmount() {
 	Stop()
 }
 
@@ -110,7 +110,7 @@ func createInstrument(instrtype int, a, d, s, r float32) *notes.NoteMultiplexer 
 	return multi1
 }
 
-func (a *adsrExample) Update(dt float32) {
+func (a *adsrExample) Update(dt float64) {
 	a.totaltime += dt
 	if len(a.piece) > 0 {
 		n := a.piece[0]

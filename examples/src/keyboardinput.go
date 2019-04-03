@@ -2,7 +2,6 @@ package examples
 
 import (
 	"flag"
-	"fmt"
 	"go-audio-service/filters"
 	"go-audio-service/notes"
 	"go-audio-service/snd"
@@ -11,8 +10,6 @@ import (
 	"pixelext/ui"
 
 	"github.com/rakyll/portmidi"
-
-	"github.com/faiface/pixel/text"
 
 	"golang.org/x/image/colornames"
 
@@ -64,10 +61,8 @@ type keyboardExample struct {
 	blackKey    *imdraw.IMDraw
 	whiteCanvas *pixelgl.Canvas
 	blackCanvas *pixelgl.Canvas
-	txtOsci1    *text.Text
-	toggleOsci1 *ValueToggle
-	txtOsci2    *text.Text
-	toggleOsci2 *ValueToggle
+	waveOsci1   *ui.ButtonGroup
+	waveOsci2   *ui.ButtonGroup
 	portIn      *portmidi.Stream
 }
 
@@ -152,20 +147,49 @@ func (k *keyboardExample) Init() {
 		k.instr.SetModGain(v)
 	})
 
-	k.txtOsci1 = text.New(pixel.ZV, FontService.Get("basic"))
-	fmt.Fprintf(k.txtOsci1, "OSCI1")
-	k.toggleOsci1 = NewValueToggle(80, 15, func(val int) {
-		k.instr.SetOsciType(1, OsciType(val))
+	txt := nodes.NewText("txtosci1", "basic")
+	txt.Printf("OSCI1")
+	txt.SetPos(pixel.V(400, 340))
+	txt.SetZeroAlignment(nodes.AlignmentCenterLeft)
+	k.AddChild(txt)
+	k.waveOsci1 = ui.NewButtonGroup("waveosci1", 0)
+	k.waveOsci1.AddButton("sin", "sin", 0)
+	k.waveOsci1.AddButton("rect", "rect", 0)
+	k.waveOsci1.OnChange(func(v string) {
+		var oscitype OsciType
+		switch v {
+		case "rect":
+			oscitype = OsciRect
+		default:
+			oscitype = OsciSin
+		}
+		k.instr.SetOsciType(1, oscitype)
 	})
-	k.toggleOsci1.AddValue("sin", int(OsciSin))
-	k.toggleOsci1.AddValue("rect", int(OsciRect))
-	k.txtOsci2 = text.New(pixel.ZV, FontService.Get("basic"))
-	fmt.Fprintf(k.txtOsci2, "OSCI2")
-	k.toggleOsci2 = NewValueToggle(80, 15, func(val int) {
-		k.instr.SetOsciType(2, OsciType(val))
+	k.waveOsci1.SetPos(pixel.V(450, 340))
+	k.waveOsci1.SetZeroAlignment(nodes.AlignmentCenterLeft)
+	k.AddChild(k.waveOsci1)
+
+	txt = nodes.NewText("txtosci2", "basic")
+	txt.Printf("OSCI2")
+	txt.SetPos(pixel.V(400, 300))
+	txt.SetZeroAlignment(nodes.AlignmentCenterLeft)
+	k.AddChild(txt)
+	k.waveOsci2 = ui.NewButtonGroup("waveosci2", 0)
+	k.waveOsci2.AddButton("sin", "sin", 0)
+	k.waveOsci2.AddButton("rect", "rect", 0)
+	k.waveOsci2.OnChange(func(v string) {
+		var oscitype OsciType
+		switch v {
+		case "rect":
+			oscitype = OsciRect
+		default:
+			oscitype = OsciSin
+		}
+		k.instr.SetOsciType(2, oscitype)
 	})
-	k.toggleOsci2.AddValue("sin", int(OsciSin))
-	k.toggleOsci2.AddValue("rect", int(OsciRect))
+	k.waveOsci2.SetPos(pixel.V(450, 300))
+	k.waveOsci2.SetZeroAlignment(nodes.AlignmentCenterLeft)
+	k.AddChild(k.waveOsci2)
 }
 
 func (k *keyboardExample) Mount() {
@@ -258,17 +282,10 @@ func (k *keyboardExample) Draw(win *pixelgl.Window, mat pixel.Matrix) {
 			k.blackCanvas.DrawColorMask(win, orig.Moved(pixel.V(xBlack, 25)), maskcolor)
 		}
 	}
-	/*k.sliderAttack.Update(win, dt, mat.Moved(pixel.V(20, top-280)))
-	k.sliderDecay.Update(win, dt, mat.Moved(pixel.V(20, top-320)))
-	k.sliderSustain.Update(win, dt, mat.Moved(pixel.V(20, top-360)))
-	k.sliderRelease.Update(win, dt, mat.Moved(pixel.V(20, top-400)))
-	k.sliderModFactor.Update(win, dt, mat.Moved(pixel.V(20, top-440)))
-	k.sliderModGain.Update(win, dt, mat.Moved(pixel.V(20, top-480)))
-
-	k.txtOsci1.Draw(win, mat.Moved(pixel.V(400, top-260)))
-	k.toggleOsci1.Update(win, dt, mat.Moved(pixel.V(450, top-260)))
-	k.txtOsci2.Draw(win, mat.Moved(pixel.V(400, top-280)))
-	k.toggleOsci2.Update(win, dt, mat.Moved(pixel.V(450, top-280)))*/
+	/*	k.txtOsci1.Draw(win, mat.Moved(pixel.V(400, top-260)))
+		k.toggleOsci1.Update(win, dt, mat.Moved(pixel.V(450, top-260)))
+		k.txtOsci2.Draw(win, mat.Moved(pixel.V(400, top-280)))
+		k.toggleOsci2.Update(win, dt, mat.Moved(pixel.V(450, top-280)))*/
 }
 
 func init() {

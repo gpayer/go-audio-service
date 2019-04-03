@@ -25,7 +25,7 @@ func (c *ContinuousNote) Read(samples *snd.Samples) {
 	length := len(samples.Frames)
 	c.r.ReadStateless(samples, c.freq, c.state)
 	c.state.Timecode += uint32(length)
-	c.state.Timecode %= samples.SampleRate
+	//c.state.Timecode %= samples.SampleRate
 }
 
 func (c *ContinuousNote) ReadStateless(samples *snd.Samples, freq float32, _ *snd.NoteState) {

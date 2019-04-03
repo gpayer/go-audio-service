@@ -1,23 +1,28 @@
 package examples
 
 import (
-	"pixelext/nodes"
-	"github.com/faiface/pixel"
 	"go-audio-service/filters"
 	"go-audio-service/generators"
 	"go-audio-service/notes"
 	"go-audio-service/snd"
+	"pixelext/nodes"
 
-	"github.com/faiface/pixel/pixelgl"
+	"github.com/faiface/pixel"
 )
 
 type rectExample struct {
 	nodes.BaseNode
-	totalTime float32
+	totalTime float64
 	gain      snd.Readable
 }
 
 func (r *rectExample) Init() {
+	txt := nodes.NewText("txt", "basic")
+	txt.SetZeroAlignment(nodes.AlignmentTopLeft)
+	txt.SetPos(pixel.V(20, 580))
+	txt.Printf("Rect example")
+	r.AddChild(txt)
+
 	rect := generators.NewRect(44000, 440)
 
 	fm, _ := rect.GetInput("fm")
@@ -40,17 +45,17 @@ func (r *rectExample) Init() {
 	r.gain = gain
 }
 
-func (r *rectExample) Mounted() {
+func (r *rectExample) Mount() {
 	r.totalTime = 0
 	GetOutput().SetReadable(r.gain)
 	Start()
 }
 
-func (r *rectExample) Unmounted() {
+func (r *rectExample) Unmount() {
 	Stop()
 }
 
-func (r *rectExample) Update(win *pixelgl.Window, dt float32, mat pixel.Matrix) {
+func (r *rectExample) Update(dt float64) {
 	r.totalTime += dt
 	if r.totalTime >= 1 {
 		SwitchScene("main")
@@ -58,5 +63,10 @@ func (r *rectExample) Update(win *pixelgl.Window, dt float32, mat pixel.Matrix) 
 }
 
 func init() {
-	AddExample("Rect", &rectExample{totalTime: 0})
+	r := &rectExample{
+		BaseNode:  *nodes.NewBaseNode("rect"),
+		totalTime: 0,
+	}
+	r.Self = r
+	AddExample("Rect", r)
 }
