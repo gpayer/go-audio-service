@@ -29,72 +29,46 @@ type keyDef struct {
 	white   bool
 }
 
-type confSlider struct {
-	nodes.BaseNode
-	hbox     *ui.HBox
-	w        float64
-	txt      *nodes.Text
-	slider   *ui.Slider
-	valueTxt *nodes.Text
-	onchange func(v float32)
-}
+func newConfSlider(grid *ui.Grid, desc string, w, h float64, min, max, v float32, onchange func(v float32)) {
+	txt := nodes.NewText("txt", "basic")
+	txt.Printf(desc)
+	grid.AddChild(txt)
 
-func newConfSlider(desc string, w, h float64, min, max, v float32, onchange func(v float32)) *confSlider {
-	s := &confSlider{
-		BaseNode: *nodes.NewBaseNode(""),
-		w:        w,
-		onchange: onchange,
-	}
-	s.Self = s
-	s.hbox = ui.NewHBox("hbox")
-	s.AddChild(s.hbox)
-
-	s.txt = nodes.NewText("txt", "basic")
-	s.txt.Printf(desc)
-	s.hbox.AddChild(s.txt)
+	valueTxt := nodes.NewText("valuetxt", "basic")
 
 	sliderval := nodes.NewBaseNode("")
-	s.slider = ui.NewSlider("slider", min, max, v)
-	s.slider.SetBounds(pixel.R(0, 0, w, h))
-	s.slider.OnChange(func(v float32) {
-		s.onchange(v)
-		s.valueTxt.Clear()
-		s.valueTxt.Printf("%.2f", s.slider.Value())
+	slider := ui.NewSlider("slider", min, max, v)
+	slider.SetBounds(pixel.R(0, 0, w, h))
+	slider.OnChange(func(v float32) {
+		onchange(v)
+		valueTxt.Clear()
+		valueTxt.Printf("%.2f", slider.Value())
 	})
-	sliderval.AddChild(s.slider)
+	sliderval.AddChild(slider)
 
-	s.valueTxt = nodes.NewText("valuetxt", "basic")
-	s.valueTxt.SetZIndex(10)
-	s.valueTxt.SetZeroAlignment(nodes.AlignmentCenter)
-	s.valueTxt.SetPos(pixel.V(w/2, h/2))
-	s.valueTxt.Printf("%.2f", v)
-	sliderval.AddChild(s.valueTxt)
-	s.hbox.AddChild(sliderval)
-
-	return s
+	valueTxt.SetZIndex(10)
+	valueTxt.SetZeroAlignment(nodes.AlignmentCenter)
+	valueTxt.SetPos(pixel.V(w/2, h/2))
+	valueTxt.Printf("%.2f", v)
+	sliderval.AddChild(valueTxt)
+	grid.AddChild(sliderval)
 }
 
 type keyboardExample struct {
 	nodes.BaseNode
-	readable        snd.Readable
-	instr           *DoubleOsci
-	keys            map[pixelgl.Button]*keyDef
-	keyIdx          []pixelgl.Button
-	whiteKey        *imdraw.IMDraw
-	blackKey        *imdraw.IMDraw
-	sliderAttack    *confSlider
-	sliderDecay     *confSlider
-	sliderSustain   *confSlider
-	sliderRelease   *confSlider
-	sliderModFactor *confSlider
-	sliderModGain   *confSlider
-	whiteCanvas     *pixelgl.Canvas
-	blackCanvas     *pixelgl.Canvas
-	txtOsci1        *text.Text
-	toggleOsci1     *ValueToggle
-	txtOsci2        *text.Text
-	toggleOsci2     *ValueToggle
-	portIn          *portmidi.Stream
+	readable    snd.Readable
+	instr       *DoubleOsci
+	keys        map[pixelgl.Button]*keyDef
+	keyIdx      []pixelgl.Button
+	whiteKey    *imdraw.IMDraw
+	blackKey    *imdraw.IMDraw
+	whiteCanvas *pixelgl.Canvas
+	blackCanvas *pixelgl.Canvas
+	txtOsci1    *text.Text
+	toggleOsci1 *ValueToggle
+	txtOsci2    *text.Text
+	toggleOsci2 *ValueToggle
+	portIn      *portmidi.Stream
 }
 
 func (k *keyboardExample) Init() {
@@ -150,41 +124,33 @@ func (k *keyboardExample) Init() {
 	k.blackKey.Push(pixel.V(0, 0), pixel.V(0, 100), pixel.V(30, 100), pixel.V(30, 0))
 	k.blackKey.Polygon(0)
 
-	k.sliderAttack = newConfSlider("Attack", 120, 30, 0.01, 1, attack, func(v float32) {
+	grid := ui.NewGrid("grid", 2)
+	grid.SetPos(pixel.V(20, 320))
+	k.AddChild(grid)
+
+	newConfSlider(grid, "Attack", 120, 30, 0.01, 1, attack, func(v float32) {
 		k.instr.SetAttack(v)
 	})
-	k.sliderAttack.SetPos(pixel.V(20, 320))
-	k.AddChild(k.sliderAttack)
 
-	k.sliderDecay = newConfSlider("Decay", 120, 30, 0, 3, decay, func(v float32) {
+	newConfSlider(grid, "Decay", 120, 30, 0, 3, decay, func(v float32) {
 		k.instr.SetDecay(v)
 	})
-	k.sliderDecay.SetPos(pixel.V(20, 280))
-	k.AddChild(k.sliderDecay)
 
-	k.sliderSustain = newConfSlider("Sustain", 120, 30, 0, 1, sustain, func(v float32) {
+	newConfSlider(grid, "Sustain", 120, 30, 0, 1, sustain, func(v float32) {
 		k.instr.SetSustain(v)
 	})
-	k.sliderSustain.SetPos(pixel.V(20, 240))
-	k.AddChild(k.sliderSustain)
 
-	k.sliderRelease = newConfSlider("Release", 120, 30, 0.01, 3, release, func(v float32) {
+	newConfSlider(grid, "Release", 120, 30, 0.01, 3, release, func(v float32) {
 		k.instr.SetRelease(v)
 	})
-	k.sliderRelease.SetPos(pixel.V(20, 200))
-	k.AddChild(k.sliderRelease)
 
-	k.sliderModFactor = newConfSlider("ModFactor", 120, 30, 0, 15, modFactor, func(v float32) {
+	newConfSlider(grid, "ModFactor", 120, 30, 0, 15, modFactor, func(v float32) {
 		k.instr.SetModFactor(v)
 	})
-	k.sliderModFactor.SetPos(pixel.V(20, 160))
-	k.AddChild(k.sliderModFactor)
 
-	k.sliderModGain = newConfSlider("ModGain", 120, 30, 0, 20, modGain, func(v float32) {
+	newConfSlider(grid, "ModGain", 120, 30, 0, 20, modGain, func(v float32) {
 		k.instr.SetModGain(v)
 	})
-	k.sliderModGain.SetPos(pixel.V(20, 120))
-	k.AddChild(k.sliderModGain)
 
 	k.txtOsci1 = text.New(pixel.ZV, FontService.Get("basic"))
 	fmt.Fprintf(k.txtOsci1, "OSCI1")
