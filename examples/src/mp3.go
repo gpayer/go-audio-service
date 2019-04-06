@@ -13,21 +13,21 @@ import (
 	"github.com/faiface/pixel"
 )
 
-type wavExample struct {
+type mp3Example struct {
 	nodes.BaseNode
 	multi *notes.NoteMultiplexer
 	gain  snd.Readable
 }
 
-func (w *wavExample) Init() {
+func (w *mp3Example) Init() {
 	txt := nodes.NewText("txt", "basic")
 	txt.SetZeroAlignment(nodes.AlignmentTopLeft)
 	txt.SetPos(pixel.V(20, 580))
-	txt.Printf("Wav example")
+	txt.Printf("MP3 example")
 	txt.Printf("\nPress space for sound\nPress Q to quit")
 	w.AddChild(txt)
 
-	samples, err := services.ResourceManager().LoadSample("samples/CYCdh_K4-Snr05.wav")
+	samples, err := services.ResourceManager().LoadSample("samples/CYCdh_K4-Snr05.mp3")
 	if err != nil {
 		panic(err)
 	}
@@ -41,16 +41,16 @@ func (w *wavExample) Init() {
 	w.gain = gain
 }
 
-func (w *wavExample) Mount() {
+func (w *mp3Example) Mount() {
 	GetOutput().SetReadable(w.gain)
 	Start()
 }
 
-func (w *wavExample) Unmount() {
+func (w *mp3Example) Unmount() {
 	Stop()
 }
 
-func (w *wavExample) Update(dt float64) {
+func (w *mp3Example) Update(dt float64) {
 	if nodes.Events().JustPressed(pixelgl.KeyQ) {
 		SwitchScene("main")
 	}
@@ -63,9 +63,9 @@ func (w *wavExample) Update(dt float64) {
 }
 
 func init() {
-	w := &wavExample{
-		BaseNode: *nodes.NewBaseNode("wav"),
+	w := &mp3Example{
+		BaseNode: *nodes.NewBaseNode("mp3"),
 	}
 	w.Self = w
-	AddExample("Wav", w)
+	AddExample("MP3", w)
 }
