@@ -55,10 +55,10 @@ func (w *mp3Example) Update(dt float64) {
 		SwitchScene("main")
 	}
 	if nodes.Events().JustPressed(pixelgl.KeySpace) {
-		w.multi.SendNoteEvent(notes.NewNoteEvent(notes.Pressed, 880.0, .5))
+		w.multi.SendNoteEvent(notes.NewNoteEvent(notes.Pressed, 880.0, .9))
 	}
 	if nodes.Events().JustReleased(pixelgl.KeySpace) {
-		w.multi.SendNoteEvent(notes.NewNoteEvent(notes.Released, 880.0, .5))
+		w.multi.SendNoteEvent(notes.NewNoteEvent(notes.Released, 880.0, .9))
 	}
 }
 
