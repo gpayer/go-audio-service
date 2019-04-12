@@ -6,6 +6,7 @@ import (
 	"go-audio-service/notes"
 	"go-audio-service/snd"
 	"pixelext/nodes"
+	"pixelext/ui"
 
 	"github.com/faiface/pixel"
 )
@@ -26,7 +27,7 @@ type adsrExample struct {
 	piece     []noteShort
 	readable  snd.Readable
 	instr     []*notes.NoteMultiplexer
-	logtxt    *nodes.Text
+	logtxt    *ui.Text
 }
 
 func (a *adsrExample) initPiece() {
@@ -72,10 +73,10 @@ func (a *adsrExample) Init() {
 	a.readable = mixer
 	a.instr = instr
 
-	a.logtxt = nodes.NewText("", "basic")
+	a.logtxt = ui.NewText("", "basic")
 	a.logtxt.Printf("ADSR Example\n")
 	a.logtxt.SetPos(pixel.V(20, 580))
-	a.logtxt.SetZeroAlignment(nodes.AlignmentTopLeft)
+	a.logtxt.SetAlignment(nodes.AlignmentTopLeft)
 	a.AddChild(a.logtxt)
 }
 

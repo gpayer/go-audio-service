@@ -27,15 +27,16 @@ type keyDef struct {
 }
 
 func newConfSlider(grid *ui.Grid, desc string, w, h float64, min, max, v float32, onchange func(v float32)) {
-	txt := nodes.NewText("txt", "basic")
+	txt := ui.NewText("txt", "basic")
 	txt.Printf(desc)
 	grid.AddChild(txt)
 
-	valueTxt := nodes.NewText("valuetxt", "basic")
+	valueTxt := ui.NewText("valuetxt", "basic")
 
-	sliderval := nodes.NewBaseNode("")
+	sliderval := ui.NewUIBase("")
+	sliderval.SetSize(pixel.V(w, h))
 	slider := ui.NewSlider("slider", min, max, v)
-	slider.SetBounds(pixel.R(0, 0, w, h))
+	slider.SetSize(pixel.V(w, h))
 	slider.OnChange(func(v float32) {
 		onchange(v)
 		valueTxt.Clear()
@@ -44,8 +45,8 @@ func newConfSlider(grid *ui.Grid, desc string, w, h float64, min, max, v float32
 	sliderval.AddChild(slider)
 
 	valueTxt.SetZIndex(10)
-	valueTxt.SetZeroAlignment(nodes.AlignmentCenter)
-	valueTxt.SetPos(pixel.V(w/2, h/2))
+	valueTxt.SetAlignment(nodes.AlignmentCenter)
+	valueTxt.SetPos(pixel.ZV)
 	valueTxt.Printf("%.2f", v)
 	sliderval.AddChild(valueTxt)
 	grid.AddChild(sliderval)
@@ -120,6 +121,7 @@ func (k *keyboardExample) Init() {
 	k.blackKey.Polygon(0)
 
 	grid := ui.NewGrid("grid", 2)
+	grid.SetAlignment(nodes.AlignmentTopLeft)
 	grid.SetPos(pixel.V(20, 320))
 	k.AddChild(grid)
 
@@ -147,10 +149,10 @@ func (k *keyboardExample) Init() {
 		k.instr.SetModGain(v)
 	})
 
-	txt := nodes.NewText("txtosci1", "basic")
+	txt := ui.NewText("txtosci1", "basic")
 	txt.Printf("OSCI1")
 	txt.SetPos(pixel.V(400, 340))
-	txt.SetZeroAlignment(nodes.AlignmentCenterLeft)
+	txt.SetAlignment(nodes.AlignmentCenterLeft)
 	k.AddChild(txt)
 	k.waveOsci1 = ui.NewButtonGroup("waveosci1", 0)
 	k.waveOsci1.AddButton("sin", "sin", 0)
@@ -166,13 +168,13 @@ func (k *keyboardExample) Init() {
 		k.instr.SetOsciType(1, oscitype)
 	})
 	k.waveOsci1.SetPos(pixel.V(450, 340))
-	k.waveOsci1.SetZeroAlignment(nodes.AlignmentCenterLeft)
+	k.waveOsci1.SetAlignment(nodes.AlignmentCenterLeft)
 	k.AddChild(k.waveOsci1)
 
-	txt = nodes.NewText("txtosci2", "basic")
+	txt = ui.NewText("txtosci2", "basic")
 	txt.Printf("OSCI2")
-	txt.SetPos(pixel.V(400, 300))
-	txt.SetZeroAlignment(nodes.AlignmentCenterLeft)
+	txt.SetPos(pixel.V(400, 280))
+	txt.SetAlignment(nodes.AlignmentCenterLeft)
 	k.AddChild(txt)
 	k.waveOsci2 = ui.NewButtonGroup("waveosci2", 0)
 	k.waveOsci2.AddButton("sin", "sin", 0)
@@ -187,8 +189,8 @@ func (k *keyboardExample) Init() {
 		}
 		k.instr.SetOsciType(2, oscitype)
 	})
-	k.waveOsci2.SetPos(pixel.V(450, 300))
-	k.waveOsci2.SetZeroAlignment(nodes.AlignmentCenterLeft)
+	k.waveOsci2.SetPos(pixel.V(450, 280))
+	k.waveOsci2.SetAlignment(nodes.AlignmentCenterLeft)
 	k.AddChild(k.waveOsci2)
 }
 
@@ -282,10 +284,6 @@ func (k *keyboardExample) Draw(win *pixelgl.Window, mat pixel.Matrix) {
 			k.blackCanvas.DrawColorMask(win, orig.Moved(pixel.V(xBlack, 25)), maskcolor)
 		}
 	}
-	/*	k.txtOsci1.Draw(win, mat.Moved(pixel.V(400, top-260)))
-		k.toggleOsci1.Update(win, dt, mat.Moved(pixel.V(450, top-260)))
-		k.txtOsci2.Draw(win, mat.Moved(pixel.V(400, top-280)))
-		k.toggleOsci2.Update(win, dt, mat.Moved(pixel.V(450, top-280)))*/
 }
 
 func init() {

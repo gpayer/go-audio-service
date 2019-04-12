@@ -7,6 +7,7 @@ import (
 	"go-audio-service/snd"
 	"pixelext/nodes"
 	"pixelext/services"
+	"pixelext/ui"
 
 	"github.com/faiface/pixel/pixelgl"
 
@@ -20,8 +21,8 @@ type wavExample struct {
 }
 
 func (w *wavExample) Init() {
-	txt := nodes.NewText("txt", "basic")
-	txt.SetZeroAlignment(nodes.AlignmentTopLeft)
+	txt := ui.NewText("txt", "basic")
+	txt.SetAlignment(nodes.AlignmentTopLeft)
 	txt.SetPos(pixel.V(20, 580))
 	txt.Printf("Wav example")
 	txt.Printf("\nPress space for sound\nPress Q to quit")

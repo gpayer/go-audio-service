@@ -6,6 +6,7 @@ import (
 	"go-audio-service/notes"
 	"go-audio-service/snd"
 	"pixelext/nodes"
+	"pixelext/ui"
 
 	"github.com/faiface/pixel"
 )
@@ -17,8 +18,8 @@ type sinExample struct {
 }
 
 func (s *sinExample) Init() {
-	txt := nodes.NewText("txt", "basic")
-	txt.SetZeroAlignment(nodes.AlignmentTopLeft)
+	txt := ui.NewText("txt", "basic")
+	txt.SetAlignment(nodes.AlignmentTopLeft)
 	txt.SetPos(pixel.V(20, 580))
 	txt.Printf("Sin example")
 	s.AddChild(txt)

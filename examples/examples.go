@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"pixelext/nodes"
+	"pixelext/ui"
 	"runtime"
 	"runtime/pprof"
 
@@ -18,19 +19,19 @@ import (
 
 type mainScene struct {
 	nodes.BaseNode
-	exampleListTxt *nodes.Text
+	exampleListTxt *ui.Text
 	numkeys        map[int]pixelgl.Button
 }
 
 func (m *mainScene) Init() {
 	list := examples.GetExamples()
-	m.exampleListTxt = nodes.NewText("examplelist", "basic")
+	m.exampleListTxt = ui.NewText("examplelist", "basic")
 	m.exampleListTxt.Printf("press [ESC] to exit\n")
 	for _, e := range list {
 		m.exampleListTxt.Printf("%d: %s\n", e.Id, e.Name)
 	}
 	m.exampleListTxt.SetPos(pixel.V(20, 580))
-	m.exampleListTxt.SetZeroAlignment(nodes.AlignmentTopLeft)
+	m.exampleListTxt.SetAlignment(nodes.AlignmentTopLeft)
 	m.AddChild(m.exampleListTxt)
 
 	m.numkeys = make(map[int]pixelgl.Button, 10)

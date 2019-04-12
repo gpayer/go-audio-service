@@ -5,6 +5,7 @@ import (
 	"go-audio-service/notes"
 	"go-audio-service/snd"
 	"pixelext/nodes"
+	"pixelext/ui"
 
 	"github.com/rakyll/portmidi"
 
@@ -29,8 +30,8 @@ type mappingEntry struct {
 var mapping []mappingEntry
 
 func (w *drumsExample) Init() {
-	txt := nodes.NewText("txt", "basic")
-	txt.SetZeroAlignment(nodes.AlignmentTopLeft)
+	txt := ui.NewText("txt", "basic")
+	txt.SetAlignment(nodes.AlignmentTopLeft)
 	txt.SetPos(pixel.V(20, 580))
 	txt.Printf("Drums example")
 	txt.Printf("\nPress keys for sound\nPress Q to quit")
