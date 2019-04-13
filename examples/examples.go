@@ -14,7 +14,6 @@ import (
 
 	"github.com/faiface/pixel"
 	"github.com/faiface/pixel/pixelgl"
-	"golang.org/x/image/colornames"
 )
 
 type mainScene struct {
@@ -50,6 +49,7 @@ func (m *mainScene) Update(dt float64) {
 	for id, nk := range m.numkeys {
 		if nodes.Events().JustPressed(nk) {
 			examples.RunExample(id)
+			nodes.SceneManager().Redraw()
 			break
 		}
 	}
@@ -88,9 +88,7 @@ func run() {
 			break
 		}
 
-		win.Clear(colornames.Black)
 		nodes.SceneManager().Run(pixel.IM)
-		win.Update()
 	}
 
 	if *memprofile != "" {
