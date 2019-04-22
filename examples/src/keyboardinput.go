@@ -2,12 +2,14 @@ package examples
 
 import (
 	"flag"
+	"fmt"
 	"go-audio-service/filters"
 	"go-audio-service/notes"
 	"go-audio-service/snd"
 	"image/color"
 	"pixelext/nodes"
 	"pixelext/ui"
+	"strconv"
 
 	"github.com/rakyll/portmidi"
 
@@ -192,22 +194,38 @@ func (k *keyboardExample) Init() {
 	k.waveOsci2.SetPos(pixel.V(450, 280))
 	k.waveOsci2.SetAlignment(nodes.AlignmentCenterLeft)
 	k.AddChild(k.waveOsci2)
+
+	mididropdown := NewMidiDeviceDropDown()
+	mididropdown.SetPos(pixel.V(790, 590))
+	mididropdown.SetAlignment(nodes.AlignmentTopRight)
+	mididropdown.OnChange(func(v string) {
+		devid, err := strconv.Atoi(v)
+		if err != nil {
+			return
+		}
+		if devid > 0 {
+			if k.portIn != nil {
+				k.portIn.Close()
+				k.portIn = nil
+			}
+			portIn, err := portmidi.NewInputStream(portmidi.DeviceID(devid), 256)
+			if err != nil {
+				fmt.Println("opening midi device failed")
+				return
+			}
+			k.portIn = portIn
+		}
+	})
+	k.AddChild(mididropdown)
 }
 
 func (k *keyboardExample) Mount() {
-	if *midiDeviceID > 0 {
-		portIn, err := portmidi.NewInputStream(portmidi.DeviceID(*midiDeviceID), 256)
-		if err != nil {
-			panic(err)
-		}
-		k.portIn = portIn
-	}
 	GetOutput().SetReadable(k.readable)
 	Start()
 }
 
 func (k *keyboardExample) Unmount() {
-	if *midiDeviceID > 0 && k.portIn != nil {
+	if k.portIn != nil {
 		k.portIn.Close()
 		k.portIn = nil
 	}
@@ -230,7 +248,7 @@ func (k *keyboardExample) Update(dt float64) {
 		}
 	}
 
-	if *midiDeviceID > 0 && k.portIn != nil {
+	if k.portIn != nil {
 		midiEvents, err := k.portIn.Read(128)
 		if err == nil {
 			for _, ev := range midiEvents {
@@ -244,7 +262,7 @@ func (k *keyboardExample) Update(dt float64) {
 	}
 }
 
-func (k *keyboardExample) Draw(win *pixelgl.Window, mat pixel.Matrix) {
+func (k *keyboardExample) Draw(win pixel.Target, mat pixel.Matrix) {
 	if k.whiteCanvas == nil {
 		k.whiteCanvas = pixelgl.NewCanvas(pixel.R(0, 0, 50, 200))
 		k.whiteKey.Draw(k.whiteCanvas)
