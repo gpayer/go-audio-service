@@ -1,7 +1,7 @@
 package filters
 
 import (
-	"go-audio-service/snd"
+	"github.com/gpayer/go-audio-service/snd"
 )
 
 type Gain struct {

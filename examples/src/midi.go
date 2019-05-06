@@ -2,7 +2,7 @@ package examples
 
 import (
 	"fmt"
-	"pixelext/ui"
+	"github.com/gpayer/pixelext/ui"
 
 	"github.com/rakyll/portmidi"
 )

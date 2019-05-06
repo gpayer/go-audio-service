@@ -2,9 +2,9 @@ package main
 
 import (
 	"fmt"
-	"go-audio-service/generators"
-	"go-audio-service/mix"
-	"go-audio-service/snd"
+	"github.com/gpayer/go-audio-service/generators"
+	"github.com/gpayer/go-audio-service/mix"
+	"github.com/gpayer/go-audio-service/snd"
 	"time"
 )
 

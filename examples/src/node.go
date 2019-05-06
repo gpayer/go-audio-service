@@ -1,7 +1,7 @@
 package examples
 
 import (
-	"pixelext/nodes"
+	"github.com/gpayer/pixelext/nodes"
 )
 
 var sceneList map[string]nodes.Node

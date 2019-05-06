@@ -1,8 +1,8 @@
 package generators
 
 import (
-	"go-audio-service/filters"
-	"go-audio-service/snd"
+	"github.com/gpayer/go-audio-service/filters"
+	"github.com/gpayer/go-audio-service/snd"
 	"testing"
 
 	"github.com/stretchr/testify/assert"

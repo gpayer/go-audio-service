@@ -1,7 +1,7 @@
 package mix
 
 import (
-	"go-audio-service/snd"
+	"github.com/gpayer/go-audio-service/snd"
 	"sync"
 )
 

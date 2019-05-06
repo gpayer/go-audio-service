@@ -3,13 +3,14 @@ package examples
 import (
 	"flag"
 	"fmt"
-	"go-audio-service/filters"
-	"go-audio-service/notes"
-	"go-audio-service/snd"
 	"image/color"
-	"pixelext/nodes"
-	"pixelext/ui"
 	"strconv"
+
+	"github.com/gpayer/go-audio-service/filters"
+	"github.com/gpayer/go-audio-service/notes"
+	"github.com/gpayer/go-audio-service/snd"
+	"github.com/gpayer/pixelext/nodes"
+	"github.com/gpayer/pixelext/ui"
 
 	"github.com/rakyll/portmidi"
 
@@ -198,7 +199,7 @@ func (k *keyboardExample) Init() {
 	mididropdown := NewMidiDeviceDropDown()
 	mididropdown.SetPos(pixel.V(790, 590))
 	mididropdown.SetAlignment(nodes.AlignmentTopRight)
-	mididropdown.OnChange(func(v string) {
+	mididropdown.OnChange(func(v string, _ string) {
 		devid, err := strconv.Atoi(v)
 		if err != nil {
 			return

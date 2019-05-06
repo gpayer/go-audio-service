@@ -1,12 +1,12 @@
 package examples
 
 import (
-	"go-audio-service/generators"
-	"go-audio-service/mix"
-	"go-audio-service/notes"
-	"go-audio-service/snd"
-	"pixelext/nodes"
-	"pixelext/ui"
+	"github.com/gpayer/go-audio-service/generators"
+	"github.com/gpayer/go-audio-service/mix"
+	"github.com/gpayer/go-audio-service/notes"
+	"github.com/gpayer/go-audio-service/snd"
+	"github.com/gpayer/pixelext/nodes"
+	"github.com/gpayer/pixelext/ui"
 
 	"github.com/faiface/pixel"
 )

@@ -2,11 +2,11 @@ package main
 
 import (
 	"flag"
-	examples "go-audio-service/examples/src"
+	examples "github.com/gpayer/go-audio-service/examples/src"
 	"log"
 	"os"
-	"pixelext/nodes"
-	"pixelext/ui"
+	"github.com/gpayer/pixelext/nodes"
+	"github.com/gpayer/pixelext/ui"
 	"runtime"
 	"runtime/pprof"
 

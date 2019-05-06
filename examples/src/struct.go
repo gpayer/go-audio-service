@@ -1,8 +1,8 @@
 package examples
 
 import (
-	"go-audio-service/snd"
-	"pixelext/nodes"
+	"github.com/gpayer/go-audio-service/snd"
+	"github.com/gpayer/pixelext/nodes"
 )
 
 type Example struct {

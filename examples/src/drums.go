@@ -1,11 +1,11 @@
 package examples
 
 import (
-	"go-audio-service/filters"
-	"go-audio-service/notes"
-	"go-audio-service/snd"
-	"pixelext/nodes"
-	"pixelext/ui"
+	"github.com/gpayer/go-audio-service/filters"
+	"github.com/gpayer/go-audio-service/notes"
+	"github.com/gpayer/go-audio-service/snd"
+	"github.com/gpayer/pixelext/nodes"
+	"github.com/gpayer/pixelext/ui"
 
 	"github.com/rakyll/portmidi"
 

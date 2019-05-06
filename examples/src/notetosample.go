@@ -2,10 +2,10 @@ package examples
 
 import (
 	"fmt"
-	"go-audio-service/generators"
-	"go-audio-service/notes"
-	"go-audio-service/snd"
-	"pixelext/services"
+	"github.com/gpayer/go-audio-service/generators"
+	"github.com/gpayer/go-audio-service/notes"
+	"github.com/gpayer/go-audio-service/snd"
+	"github.com/gpayer/pixelext/services"
 )
 
 type NoteToSample struct {

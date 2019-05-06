@@ -1,13 +1,13 @@
 package examples
 
 import (
-	"go-audio-service/filters"
-	"go-audio-service/generators"
-	"go-audio-service/notes"
-	"go-audio-service/snd"
-	"pixelext/nodes"
-	"pixelext/services"
-	"pixelext/ui"
+	"github.com/gpayer/go-audio-service/filters"
+	"github.com/gpayer/go-audio-service/generators"
+	"github.com/gpayer/go-audio-service/notes"
+	"github.com/gpayer/go-audio-service/snd"
+	"github.com/gpayer/pixelext/nodes"
+	"github.com/gpayer/pixelext/services"
+	"github.com/gpayer/pixelext/ui"
 
 	"github.com/faiface/pixel/pixelgl"
 

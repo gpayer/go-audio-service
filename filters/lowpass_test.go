@@ -1,8 +1,8 @@
 package filters
 
 import (
-	"go-audio-service/generators"
-	"go-audio-service/snd"
+	"github.com/gpayer/go-audio-service/generators"
+	"github.com/gpayer/go-audio-service/snd"
 	"testing"
 )
 
