@@ -60,5 +60,5 @@ func TestRectAM(t *testing.T) {
 
 	assert.Equal(float32(0.5), samples.Frames[0].L)
 	assert.True(float32(0.5)-samples.Frames[50].L < 0.001)
-	assert.Equal(float32(-1), samples.Frames[25].L)
+	assert.Equal(float32(-2), samples.Frames[25].L)
 }
