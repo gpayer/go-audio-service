@@ -25,7 +25,7 @@ type Output struct {
 }
 
 // NewOutput creates a new Output instance
-func NewOutput(samplerate uint32, buffersize int) (*Output, error) {
+func NewOutput(samplerate uint32, buffersize uint32) (*Output, error) {
 	o := &Output{}
 	var err error
 	o.context, err = malgo.InitContext(nil, malgo.ContextConfig{}, func(_ string) {})
@@ -37,6 +37,7 @@ func NewOutput(samplerate uint32, buffersize int) (*Output, error) {
 	deviceConfig.Format = malgo.FormatS16
 	deviceConfig.Channels = 2
 	deviceConfig.SampleRate = samplerate
+	deviceConfig.BufferSizeInFrames = buffersize
 
 	o.samplerate = samplerate
 	o.samplesize = malgo.SampleSizeInBytes(deviceConfig.Format)

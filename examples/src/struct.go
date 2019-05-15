@@ -60,7 +60,7 @@ func SetOutput(outputtype int, param string) {
 	var out snd.IOutput
 	var err error
 	if outputtype == AudioOutput {
-		out, err = snd.NewOutput(44100, 512)
+		out, err = snd.NewOutput(44100, 2048)
 	} else if outputtype == DatOutput {
 		out, err = snd.NewDatWriter(44100, param)
 	}

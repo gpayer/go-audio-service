@@ -2,13 +2,14 @@ package main
 
 import (
 	"flag"
-	examples "github.com/gpayer/go-audio-service/examples/src"
 	"log"
 	"os"
-	"github.com/gpayer/pixelext/nodes"
-	"github.com/gpayer/pixelext/ui"
 	"runtime"
 	"runtime/pprof"
+
+	examples "github.com/gpayer/go-audio-service/examples/src"
+	"github.com/gpayer/pixelext/nodes"
+	"github.com/gpayer/pixelext/ui"
 
 	"github.com/rakyll/portmidi"
 
@@ -74,7 +75,7 @@ func run() {
 	}
 	defer func() { _ = portmidi.Terminate() }()
 
-	nodes.Events().SetWin(win)
+	nodes.SceneManager().SetWin(win)
 
 	mainscene := &mainScene{
 		BaseNode: *nodes.NewBaseNode("main"),
