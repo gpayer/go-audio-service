@@ -5,4 +5,5 @@ steps:
 - name: test
   image: golang
   commands:
-  - go test
+  - go test ./snd ./filters ./generators ./mix ./notes
+  - go build ./snd ./filters ./generators ./mix ./notes
