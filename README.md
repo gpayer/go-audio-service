@@ -1,5 +1,6 @@
 # go-audio-service
 [![Go Report Card](https://goreportcard.com/badge/github.com/gpayer/go-audio-service)](https://goreportcard.com/report/github.com/gpayer/go-audio-service)
+[![Build Status](https://cloud.drone.io/api/badges/gpayer/go-audio-service/status.svg)](https://cloud.drone.io/gpayer/go-audio-service)
 
 **Important note: this is under heavy development and anything might change anytime!**
 
