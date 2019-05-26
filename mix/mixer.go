@@ -1,8 +1,9 @@
 package mix
 
 import (
-	"github.com/gpayer/go-audio-service/snd"
 	"sync"
+
+	"github.com/gpayer/go-audio-service/snd"
 )
 
 // Mixer allows the mixing of different channels
@@ -62,6 +63,18 @@ func (m *Mixer) GetChannel() *Channel {
 	return ch
 }
 
+// RemoveChannel removes an existing channel from the mixer
+func (m *Mixer) RemoveChannel(ch *Channel) {
+	for i, channel := range m.channels {
+		if channel == ch {
+			m.channels[i] = m.channels[len(m.channels)-1]
+			m.channels[len(m.channels)-1] = nil
+			m.channels = m.channels[:len(m.channels)-1]
+			return
+		}
+	}
+}
+
 func (m *Mixer) Read(samples *snd.Samples) {
 	m.ReadStateless(samples, 0, snd.EmptyNoteState)
 }
@@ -74,6 +87,9 @@ func (m *Mixer) ReadStateless(samples *snd.Samples, freq float32, state *snd.Not
 		}
 		tmp := m.tmp
 		for _, channel := range m.channels {
+			if !channel.Enabled() {
+				continue
+			}
 			channel.ReadStateless(tmp, freq, state)
 			for i := 0; i < length; i++ {
 				samples.Frames[i].L += tmp.Frames[i].L

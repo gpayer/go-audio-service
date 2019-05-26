@@ -1,8 +1,9 @@
 package mix
 
 import (
-	"github.com/gpayer/go-audio-service/snd"
 	"math"
+
+	"github.com/gpayer/go-audio-service/snd"
 )
 
 // Channel is a special volume and pan filter, which can be connected to a mixer
@@ -10,6 +11,7 @@ type Channel struct {
 	gain       float32
 	pan        float32
 	samplerate uint32
+	enabled    bool
 	readable   snd.Readable
 }
 
@@ -19,6 +21,7 @@ func NewChannel(samplerate uint32) *Channel {
 		samplerate: samplerate,
 		gain:       1.0,
 		pan:        0.0,
+		enabled:    true,
 	}
 }
 
@@ -33,6 +36,14 @@ func clamp(v float32, min float32, max float32) float32 {
 		return min
 	}
 	return v
+}
+
+func (ch *Channel) SetEnabled(enabled bool) {
+	ch.enabled = enabled
+}
+
+func (ch *Channel) Enabled() bool {
+	return ch.enabled
 }
 
 // SetGain sets gain value
@@ -60,6 +71,14 @@ func (ch *Channel) Read(samples *snd.Samples) {
 }
 
 func (ch *Channel) ReadStateless(samples *snd.Samples, freq float32, state *snd.NoteState) {
+	if !ch.enabled {
+		for i := 0; i < len(samples.Frames); i++ {
+			samples.Frames[i] = snd.Sample{
+				L: 0,
+				R: 0,
+			}
+		}
+	}
 	ch.readable.ReadStateless(samples, freq, state)
 	scale := float32(1.0 - math.Abs(float64(ch.pan))*.5)
 	lgain := (ch.pan + 1.0) * scale
