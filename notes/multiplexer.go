@@ -1,8 +1,9 @@
 package notes
 
 import (
-	"github.com/gpayer/go-audio-service/snd"
 	"sync"
+
+	"github.com/gpayer/go-audio-service/snd"
 )
 
 type noteStruct struct {
@@ -40,6 +41,10 @@ func (n *NoteMultiplexer) SendNoteEvent(ev *NoteEvent) {
 			}
 		}
 	}
+}
+
+func (n *NoteMultiplexer) ActiveNotes() int {
+	return len(n.activeNotes)
 }
 
 func (n *NoteMultiplexer) SetReadable(r snd.Readable) {
